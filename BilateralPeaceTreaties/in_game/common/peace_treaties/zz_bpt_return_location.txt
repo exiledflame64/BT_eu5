@@ -1,4 +1,4 @@
-# Bilateral Peace Treaties - Treaty 1: the winner cedes one of its own locations
+﻿# Bilateral Peace Treaties - Treaty 1: the winner cedes one of its own locations
 # back to the loser inside the same demand deal. Negative cost -> reduces the
 # deal's net war score. One entry per matching winner-owned location.
 #
@@ -11,11 +11,25 @@ bpt_return_location = {
 	# Vanilla valuation, sign-flipped, ceding/receiving roles swapped:
 	# vanilla demand pricing is scope:target.location_peace_cost(scope:loser|scope:winner)
 	# on a LOSER-owned target; here the target is WINNER-owned and the loser receives.
-	# VERIFY-INGAME 2 (DISCOVERY.md): confirm the argument order means (ceding side|receiving side).
+	# Argument order (giver|taker) confirmed by script_docs (triggers.log).
+	#
+	# Session A.2 finding: both vanilla flows additionally multiply a location's
+	# value by the TAKER's side conquer_cost factor of the war's wargoal (Adjud:
+	# 1.78 base x 1.5 "Show Superiority" = 2.67 in the demand list AND the Offer
+	# Tribute tab). Mirrored via bpt_taker_conquer_cost_factor
+	# (script_values/bpt_values.txt); the taker of a returned location is scope:loser.
+	# Vanilla multiplies the location value by the TAKER's side conquer_cost of
+	# the war's wargoal (Session A.2; the taker of a return = scope:loser).
+	# Factor table is per war-goal TYPE - the trigger accepts nothing finer
+	# (Session A.4); see bpt_values.txt for exactness notes. The vanilla
+	# component breakdown (tax base/development/...) is computed inside the
+	# hardcoded valuation and is not exposed to script - the tooltip shows the
+	# final number only.
 	cost = {
 		add = {
 			desc = "DIPLOREASON_BASE"
 			value = "scope:target.location_peace_cost(scope:winner|scope:loser)"
+			multiply = bpt_taker_conquer_cost_factor
 			multiply = -1
 		}
 	}
@@ -34,25 +48,14 @@ bpt_return_location = {
 	# participant (Session A found duplicated entries in multi-party wars).
 	collate_targets = yes
 
+	# Session A.2: an interaction_source_list candidate pool defeated collate_targets
+	# (entries duplicated per enemy participant again), so the pool is back to
+	# source = actor - the combination proven to give exactly one entry per location.
+	# Cost: subject-owned locations are missing from the list for now, although the
+	# vanilla Offer Tribute includes them (M4) - documented gap, revisit in v1.1.
 	select_trigger = {
 		looking_for_a = location
-		# Candidate pool = the winner's own locations AND its subjects' locations:
-		# Session A measurement M4 found the vanilla Offer Tribute tab offers all
-		# owned locations including subjects' land and the capital, so the mirror
-		# must too. Pattern: appanage_* country_interactions (every_subject +
-		# add_to_list = source). Runs only when the peace UI builds the list.
-		interaction_source_list = {
-			scope:actor = {
-				every_owned_location = {
-					add_to_list = source
-				}
-				every_subject = {
-					every_owned_location = {
-						add_to_list = source
-					}
-				}
-			}
-		}
+		source = actor
 		target_flag = target
 		visible = {
 			bpt_giveable_location_trigger = yes

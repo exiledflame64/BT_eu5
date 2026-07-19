@@ -1,25 +1,29 @@
-# Bilateral Peace Treaties - Treaty 2: the winner pays gold to the loser inside
+﻿# Bilateral Peace Treaties - Treaty 2: the winner pays gold to the loser inside
 # the same demand deal. Negative cost -> reduces the deal's net war score.
 #
-# KEPT IN ITS OWN FILE on purpose: per the author's decision (2026-07), whether
-# give-gold ships in v1 is decided after the G1 session (the vanilla hardcoded
-# "Gold Treaty Exchange" may turn out to handle the give direction natively, and
-# the gold demand/offer mutual exclusion of spec constraint 5 has no engine-level
-# enforcement field). To exclude this treaty, delete this file - nothing else
-# references bpt_pay_indemnity.
+# KEPT IN ITS OWN FILE on purpose: spec constraint 5 (a deal must never contain
+# both a gold demand and a gold offer) has NO engine-level enforcement hook
+# (no exclusivity field in the treaty schema, no trigger exposing the deal under
+# construction - script_docs 2026-07-19). Whether give-gold ships in v1 is the
+# author's call; to exclude it, delete this file - nothing else references
+# bpt_pay_indemnity.
 #
-# Pattern source: bribe_vote (value select_trigger capped by treasury + two-sided
-# add_gold transfer). Amount is chosen via a value selector, replacing the spec's
-# fixed-tier fallback: peace_treaties/readme.txt documents value targets with
-# min/max/step/default, so no tier approximation is needed.
+# VALUATION (Session A.2, replaces the earlier placeholder ratio): the vanilla
+# hardcoded gold treaty is denominated in the PAYER's economy -
+# "Maximum is 5 Loans, totalling +717.27 (25 war score)" => 1 loan = 5% and
+# 1% war score = one month of the payer's trade+tax income (717.27 / 25 = 28.69
+# = loan size / 5 = monthly_income_trade_and_tax). The scripted precedent for
+# exactly this conversion is the vanilla cancel_debt peace treaty:
+# gold / scope:winner.monthly_income_trade_and_tax, guarded against zero income.
+#
+# Pattern sources: cancel_debt (cost formula + zero guard), bribe_vote (value
+# select_trigger + two-sided add_gold transfer).
 
 bpt_pay_indemnity = {
 	category = country
 
-	# Gold -> war score valuation mirrors the vanilla hardcoded gold treaty via
-	# the measured ratio bpt_gold_per_warscore (script_values/bpt_values.txt).
-	# VERIFY-INGAME 4 (DISCOVERY.md): calibrate that value before trusting costs.
-	# The exists-guard keeps cost evaluation quiet before an amount is selected.
+	# cost (in war score %) = - amount / payer_monthly_trade_and_tax_income.
+	# The exists-guard keeps evaluation quiet before an amount is selected.
 	cost = {
 		add = {
 			desc = "DIPLOREASON_BASE"
@@ -27,10 +31,25 @@ bpt_pay_indemnity = {
 			if = {
 				limit = { exists = scope:bpt_gold_amount }
 				add = scope:bpt_gold_amount
-				divide = bpt_gold_per_warscore
 			}
-			multiply = -1
+			# Preview before an amount is picked: price the smallest tier (1 loan
+			# = 5%) so the entry is negative and sorts into the give pane instead
+			# of showing 0.
+			else = {
+				add = {
+					value = scope:winner.monthly_income_trade_and_tax
+					multiply = 5
+				}
+			}
 		}
+		if = {
+			limit = { scope:winner.monthly_income_trade_and_tax != 0 }
+			divide = {
+				desc = "AUTO_MODIFIER_NAME_monthly_income_impact"
+				value = scope:winner.monthly_income_trade_and_tax
+			}
+		}
+		multiply = -1
 	}
 
 	# Paying gold causes no antagonism: base_antagonism/antagonism_type omitted
@@ -38,11 +57,11 @@ bpt_pay_indemnity = {
 
 	potential = {
 		bpt_human_involved_trigger = yes
-		# Can't offer money you don't have: at least one step must be affordable.
-		# (block-comparison form has direct vanilla precedent: sell_corsica's
-		#  "gold < { value = ... }")
 		scope:winner = {
-			gold >= { value = bpt_gold_per_warscore }
+			# Degenerate-selector guard (zero income -> zero-sized tiers).
+			# No treasury requirement: author decision 2026-07-19 - mirror the
+			# vanilla 5-loan rule; paying beyond cash on hand is allowed.
+			monthly_income_trade_and_tax > 0
 		}
 	}
 
@@ -50,18 +69,32 @@ bpt_pay_indemnity = {
 	}
 
 	# Amount selector; inside select_trigger scope:actor = winner = the payer,
-	# so the treasury cap is correct in both directions of fortune.
+	# so all bounds read the payer's economy in both directions of fortune.
+	# Tiers of one loan's worth each (1 loan = 5 monthly trade+tax incomes = 5%
+	# war score): the value-picker UI renders ~5 quick-pick options, so the tier
+	# grid makes them read exactly as "1..5 loans" - the same range and cap as
+	# the vanilla gold treaty ("Maximum is 5 Loans" = 25%). No treasury clamp:
+	# author decision 2026-07-19, mirror vanilla and let the payer go into debt
+	# (TESTLOG T4 observes what add_gold below zero actually does in 1.3.11).
 	select_trigger = {
 		looking_for_a = value
 		target_flag = bpt_gold_amount
 		name = "bpt_pay_indemnity_select_amount"
-		min = bpt_gold_per_warscore
-		max = scope:actor.gold
-		step = bpt_gold_per_warscore
+		min = {
+			value = scope:actor.monthly_income_trade_and_tax
+			multiply = 5
+		}
+		max = {
+			value = scope:actor.monthly_income_trade_and_tax
+			multiply = 25
+		}
+		step = {
+			value = scope:actor.monthly_income_trade_and_tax
+			multiply = 5
+		}
 		default = {
-			value = bpt_gold_per_warscore
-			min = bpt_gold_per_warscore
-			max = scope:actor.gold
+			value = scope:actor.monthly_income_trade_and_tax
+			multiply = 5
 		}
 	}
 

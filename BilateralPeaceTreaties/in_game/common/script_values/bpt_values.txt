@@ -1,10 +1,82 @@
-# Bilateral Peace Treaties - shared values
+﻿# Bilateral Peace Treaties - shared values
 
-# How much gold equals 1% of war score, mirroring the vanilla hardcoded
-# "Gold Treaty Exchange" in the peace window.
+# ============================================================================
+# bpt_taker_conquer_cost_factor
+# ============================================================================
+# The engine multiplies a location's peace value by the TAKING side's
+# conquer_cost factor of the war's wargoal (Session A.2: vanilla demand AND
+# Offer Tribute both showed base x 1.5 under "Show Superiority").
 #
-# PLACEHOLDER - NOT YET CALIBRATED. VERIFY-INGAME 4 (DISCOVERY.md):
-# in a vanilla peace deal, step the gold demand up and read the tooltip
-# (X gold at Y% war score cost), then set this to X / Y. Until then the
-# pay-indemnity treaty prices gold at this guessed rate.
-bpt_gold_per_warscore = 10
+# CONSTRAINT (Session A.4, error.log): the war_goal_type trigger accepts only
+# the base war goal TYPES (readme list + destroy_army) - specific wargoal ids
+# fail with "Trigger is simple assign, but assignment failed". So this table is
+# PER TYPE, using the conquer_cost of each type's generic wargoal from
+# common/wargoals/00_default.txt @1.3.11:
+#
+#   type                     source wargoal        attacker  defender
+#   superiority              superiority           1.5       1 (omitted)
+#   take_province            conquer_province      0.75      1
+#   take_capital             take_capital          0.5       1
+#   take_country             take_country          0.5       1
+#   take_border              take_border           0.8       1
+#   independence             independence          0.75      1
+#   naval_superiority        naval                 10        1
+#   enforce_military_access  demand_military_access 20       1
+#   destroy_army             sengoku_wargoal       0.75      0.75
+#   defend_capital           defend_capital        1         1 (no entry)
+#
+# EXACT for wars using those generic wargoals (incl. no-CB wars -> superiority).
+# APPROXIMATE for exotic same-type variants (e.g. superiority_coalition 0.75/2.5,
+# superiority_livonian_wars 0.75/0.75, fabricated_conquer_province 1.3,
+# take_capital_claim_throne 2/0.25...). If exact parity for those ever matters:
+# the war's casus_belli IS script-checkable (casus_belli ?= casus_belli:<key>)
+# and CBs pin their wargoal via war_goal_type = <id>, so a CB->factor override
+# table can be layered on top. Deferred until the author asks.
+#
+# Calling context: peace treaty cost (scope:war/winner/loser set). Taker of a
+# returned location = scope:loser; its side picks attacker/defender values
+# ("is_an_attacker": war-scope trigger, country target).
+
+bpt_taker_conquer_cost_factor = {
+	value = 1
+
+	# --- attacker-only factors (defender omitted -> 1) ---
+	if = {
+		limit = { scope:war = { war_goal_type = superiority is_an_attacker = scope:loser } }
+		multiply = 1.5
+	}
+	if = {
+		limit = { scope:war = { war_goal_type = take_province is_an_attacker = scope:loser } }
+		multiply = 0.75
+	}
+	if = {
+		limit = { scope:war = { war_goal_type = take_capital is_an_attacker = scope:loser } }
+		multiply = 0.5
+	}
+	if = {
+		limit = { scope:war = { war_goal_type = take_country is_an_attacker = scope:loser } }
+		multiply = 0.5
+	}
+	if = {
+		limit = { scope:war = { war_goal_type = take_border is_an_attacker = scope:loser } }
+		multiply = 0.8
+	}
+	if = {
+		limit = { scope:war = { war_goal_type = independence is_an_attacker = scope:loser } }
+		multiply = 0.75
+	}
+	if = {
+		limit = { scope:war = { war_goal_type = naval_superiority is_an_attacker = scope:loser } }
+		multiply = 10
+	}
+	if = {
+		limit = { scope:war = { war_goal_type = enforce_military_access is_an_attacker = scope:loser } }
+		multiply = 20
+	}
+
+	# --- symmetric ---
+	if = {
+		limit = { scope:war = { war_goal_type = destroy_army } }
+		multiply = 0.75
+	}
+}

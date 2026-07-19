@@ -1,4 +1,4 @@
-# Bilateral Peace Treaties - shared triggers
+﻿# Bilateral Peace Treaties - shared triggers
 # Peace treaty scopes: scope:winner = taker, scope:loser = giver, scope:war = the war
 # (documented in game/in_game/common/peace_treaties/readme.txt)
 
