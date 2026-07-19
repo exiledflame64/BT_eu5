@@ -1,0 +1,47 @@
+# =============================================================================
+# GATE G1 PROTOTYPE - DELETE THIS FILE once the G1 block in TESTLOG.md is filled.
+# =============================================================================
+# Purpose: prove the engine accepts a NEGATIVE treaty cost before the real
+# treaties are trusted: fixed cost of -5 (no data functions), searches the
+# WINNER's own locations, empty effect.
+# Checks (spec Phase 0, step 6): negative % shown in list, deal total = net,
+# net interacts correctly with the 100% cap, AI acceptance improves when added,
+# no clamping to 0, no tooltip corruption, error.log clean.
+
+bpt_g1_test = {
+	category = location
+
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = -5
+		}
+	}
+
+	potential = {
+		bpt_human_involved_trigger = yes
+	}
+
+	allow = {
+	}
+
+	# Giver-agnostic: one entry per location instead of one per enemy war
+	# participant (Session A found duplicated entries in multi-party wars).
+	collate_targets = yes
+
+	select_trigger = {
+		looking_for_a = location
+		source = actor
+		target_flag = target
+		visible = {
+			owner = scope:actor
+		}
+	}
+
+	effect = {
+	}
+
+	ai_desire = {
+		value = 0
+	}
+}

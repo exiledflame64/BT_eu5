@@ -1,0 +1,19 @@
+﻿l_german:
+ # --- Gate-G1-Prototyp (zusammen mit zz_bpt_g1_test.txt loeschen) ---
+ bpt_g1_test: "G1-Test: Eigenes Gebiet abgeben (fix -5%)"
+ bpt_g1_test_desc: "Temporärer Gate-G1-Prototyp. Wenn dies außerhalb einer Testsitzung sichtbar ist, zz_bpt_g1_test.txt löschen."
+ bpt_g1_test_entry: "G1-Test: [target.GetName] abgeben"
+ bpt_g1_test_entry_short: "G1-Test: [target.GetNameWithNoTooltip] abgeben"
+
+ # --- Gebiet zurückgeben ---
+ bpt_return_location: "Gebiet zurückgeben"
+ bpt_return_location_desc: "Wir übergeben ihnen im Rahmen dieses Friedens eines unserer eigenen Gebiete und mindern damit den Wert der übrigen Forderungen."
+ bpt_return_location_entry: "[target.GetName] an sie zurückgeben"
+ bpt_return_location_entry_short: "[target.GetNameWithNoTooltip] zurückgeben"
+
+ # --- Reparationen zahlen ---
+ bpt_pay_indemnity: "Reparationen zahlen"
+ bpt_pay_indemnity_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold und mindern damit den Wert der übrigen Forderungen."
+ bpt_pay_indemnity_entry: "Ihnen Reparationen in Gold zahlen"
+ bpt_pay_indemnity_entry_short: "Reparationen zahlen"
+ bpt_pay_indemnity_select_amount: "Höhe der Reparationen wählen"

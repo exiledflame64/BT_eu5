@@ -1,0 +1,11 @@
+{
+	"name":	"Bilateral Peace Treaties",
+	"id":	"",
+	"version":	"0.1.0",
+	"supported_game_version":	"1.3.11",
+	"short_description":	"Mixed peace deals between player and AI: return locations and pay indemnities inside a single demand, net war score",
+	"tags":	["Diplomacy"],
+	"relationships":	[],
+	"game_custom_data":	{
+}
+}

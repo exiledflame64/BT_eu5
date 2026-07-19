@@ -1,0 +1,78 @@
+# Bilateral Peace Treaties - Treaty 1: the winner cedes one of its own locations
+# back to the loser inside the same demand deal. Negative cost -> reduces the
+# deal's net war score. One entry per matching winner-owned location.
+#
+# Pattern source: disband_kontor / dismantle_fortifications (cost formula) and
+# rtr_rein_in_rebellion (change_location_owner inside a treaty effect).
+
+bpt_return_location = {
+	category = location
+
+	# Vanilla valuation, sign-flipped, ceding/receiving roles swapped:
+	# vanilla demand pricing is scope:target.location_peace_cost(scope:loser|scope:winner)
+	# on a LOSER-owned target; here the target is WINNER-owned and the loser receives.
+	# VERIFY-INGAME 2 (DISCOVERY.md): confirm the argument order means (ceding side|receiving side).
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = "scope:target.location_peace_cost(scope:winner|scope:loser)"
+			multiply = -1
+		}
+	}
+
+	# Giving land away causes no antagonism: base_antagonism/antagonism_type are
+	# omitted entirely (omission precedent: chi_recapture_emperor).
+
+	potential = {
+		bpt_human_involved_trigger = yes
+	}
+
+	allow = {
+	}
+
+	# Giver-agnostic: one entry per location instead of one per enemy war
+	# participant (Session A found duplicated entries in multi-party wars).
+	collate_targets = yes
+
+	select_trigger = {
+		looking_for_a = location
+		# Candidate pool = the winner's own locations AND its subjects' locations:
+		# Session A measurement M4 found the vanilla Offer Tribute tab offers all
+		# owned locations including subjects' land and the capital, so the mirror
+		# must too. Pattern: appanage_* country_interactions (every_subject +
+		# add_to_list = source). Runs only when the peace UI builds the list.
+		interaction_source_list = {
+			scope:actor = {
+				every_owned_location = {
+					add_to_list = source
+				}
+				every_subject = {
+					every_owned_location = {
+						add_to_list = source
+					}
+				}
+			}
+		}
+		target_flag = target
+		visible = {
+			bpt_giveable_location_trigger = yes
+		}
+	}
+
+	# Can't fully annex the loser while also giving them land back.
+	blocks_full_annexation = yes
+	# Location targets exclusive with cede treaties: the same location can never
+	# be demanded and returned in one deal.
+	are_targets_exclusive = yes
+
+	effect = {
+		scope:target = {
+			change_location_owner = scope:loser
+		}
+	}
+
+	# v1: the AI never authors this treaty in its own offers.
+	ai_desire = {
+		value = 0
+	}
+}

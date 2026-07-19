@@ -1,0 +1,19 @@
+﻿l_english:
+ # --- Gate G1 prototype (delete together with zz_bpt_g1_test.txt) ---
+ bpt_g1_test: "G1 Test: Give Own Location (flat -5%)"
+ bpt_g1_test_desc: "Temporary Gate G1 prototype. If you can read this outside a test session, delete zz_bpt_g1_test.txt."
+ bpt_g1_test_entry: "G1 test: give away [target.GetName]"
+ bpt_g1_test_entry_short: "G1 test: give away [target.GetNameWithNoTooltip]"
+
+ # --- Return Location ---
+ bpt_return_location: "Return Location"
+ bpt_return_location_desc: "We will hand one of our own locations over to them as part of this peace, reducing what the rest of the deal is worth."
+ bpt_return_location_entry: "Return [target.GetName] to them"
+ bpt_return_location_entry_short: "Return [target.GetNameWithNoTooltip]"
+
+ # --- Pay Indemnity ---
+ bpt_pay_indemnity: "Pay Indemnity"
+ bpt_pay_indemnity_desc: "We will pay them gold as part of this peace, reducing what the rest of the deal is worth."
+ bpt_pay_indemnity_entry: "Pay them a gold indemnity"
+ bpt_pay_indemnity_entry_short: "Pay indemnity"
+ bpt_pay_indemnity_select_amount: "Choose the indemnity amount"

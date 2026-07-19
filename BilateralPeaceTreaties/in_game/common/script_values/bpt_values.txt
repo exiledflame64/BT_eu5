@@ -1,0 +1,10 @@
+# Bilateral Peace Treaties - shared values
+
+# How much gold equals 1% of war score, mirroring the vanilla hardcoded
+# "Gold Treaty Exchange" in the peace window.
+#
+# PLACEHOLDER - NOT YET CALIBRATED. VERIFY-INGAME 4 (DISCOVERY.md):
+# in a vanilla peace deal, step the gold demand up and read the tooltip
+# (X gold at Y% war score cost), then set this to X / Y. Until then the
+# pay-indemnity treaty prices gold at this guessed rate.
+bpt_gold_per_warscore = 10

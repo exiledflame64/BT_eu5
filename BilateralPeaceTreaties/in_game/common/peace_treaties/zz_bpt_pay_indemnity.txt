@@ -1,0 +1,87 @@
+# Bilateral Peace Treaties - Treaty 2: the winner pays gold to the loser inside
+# the same demand deal. Negative cost -> reduces the deal's net war score.
+#
+# KEPT IN ITS OWN FILE on purpose: per the author's decision (2026-07), whether
+# give-gold ships in v1 is decided after the G1 session (the vanilla hardcoded
+# "Gold Treaty Exchange" may turn out to handle the give direction natively, and
+# the gold demand/offer mutual exclusion of spec constraint 5 has no engine-level
+# enforcement field). To exclude this treaty, delete this file - nothing else
+# references bpt_pay_indemnity.
+#
+# Pattern source: bribe_vote (value select_trigger capped by treasury + two-sided
+# add_gold transfer). Amount is chosen via a value selector, replacing the spec's
+# fixed-tier fallback: peace_treaties/readme.txt documents value targets with
+# min/max/step/default, so no tier approximation is needed.
+
+bpt_pay_indemnity = {
+	category = country
+
+	# Gold -> war score valuation mirrors the vanilla hardcoded gold treaty via
+	# the measured ratio bpt_gold_per_warscore (script_values/bpt_values.txt).
+	# VERIFY-INGAME 4 (DISCOVERY.md): calibrate that value before trusting costs.
+	# The exists-guard keeps cost evaluation quiet before an amount is selected.
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 0
+			if = {
+				limit = { exists = scope:bpt_gold_amount }
+				add = scope:bpt_gold_amount
+				divide = bpt_gold_per_warscore
+			}
+			multiply = -1
+		}
+	}
+
+	# Paying gold causes no antagonism: base_antagonism/antagonism_type omitted
+	# (omission precedent: chi_recapture_emperor).
+
+	potential = {
+		bpt_human_involved_trigger = yes
+		# Can't offer money you don't have: at least one step must be affordable.
+		# (block-comparison form has direct vanilla precedent: sell_corsica's
+		#  "gold < { value = ... }")
+		scope:winner = {
+			gold >= { value = bpt_gold_per_warscore }
+		}
+	}
+
+	allow = {
+	}
+
+	# Amount selector; inside select_trigger scope:actor = winner = the payer,
+	# so the treasury cap is correct in both directions of fortune.
+	select_trigger = {
+		looking_for_a = value
+		target_flag = bpt_gold_amount
+		name = "bpt_pay_indemnity_select_amount"
+		min = bpt_gold_per_warscore
+		max = scope:actor.gold
+		step = bpt_gold_per_warscore
+		default = {
+			value = bpt_gold_per_warscore
+			min = bpt_gold_per_warscore
+			max = scope:actor.gold
+		}
+	}
+
+	effect = {
+		if = {
+			limit = { exists = scope:bpt_gold_amount }
+			scope:winner = {
+				add_gold = {
+					value = scope:bpt_gold_amount
+					multiply = -1
+				}
+			}
+			scope:loser = {
+				add_gold = scope:bpt_gold_amount
+			}
+		}
+	}
+
+	# v1: the AI never authors this treaty in its own offers.
+	ai_desire = {
+		value = 0
+	}
+}
