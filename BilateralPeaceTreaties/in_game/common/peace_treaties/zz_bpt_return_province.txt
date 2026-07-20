@@ -1,0 +1,78 @@
+﻿# Bilateral Peace Treaties - Treaty 3: the winner hands a whole province back to
+# the loser in one entry, instead of ticking its locations one by one.
+#
+# WHY THIS EXISTS: vanilla's province -> locations tree comes from engine-built
+# inner categories that only exist for its own cession lists, and the GUI cannot
+# resolve our rows' locations at all (PeaceTreaty.HasLocation is false for
+# select_trigger targets - DISCOVERY 23), so nesting the Return rows under their
+# province is impossible. Offering the province itself as a target is the
+# workable alternative: one row per province, priced as the sum of its parts.
+#
+# Only the winner's own locations inside the province move - a province may be
+# split between owners, and the rest is none of this treaty's business.
+
+bpt_return_province = {
+	category = province
+
+	# Sum of the winner-owned locations' peace values in the province, carrying
+	# the same taker-side wargoal factor the single-location treaty uses, then
+	# sign-flipped. See bpt_province_return_cost in script_values/bpt_values.txt.
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = bpt_province_return_cost
+			multiply = -1
+		}
+	}
+
+	# No base_antagonism - the engine sends it to the deal's composer, i.e. it
+	# would make the giver hated (Session A.19). The receiver is antagonised per
+	# transferred location in the effect instead; see zz_bpt_return_location.txt.
+
+	potential = {
+		bpt_human_involved_trigger = yes
+	}
+
+	allow = {
+	}
+
+	collate_targets = yes
+
+	select_trigger = {
+		looking_for_a = province
+		source = actor
+		target_flag = target
+		visible = {
+			any_location_in_province = {
+				owner = scope:actor
+			}
+		}
+	}
+
+	blocks_full_annexation = yes
+	# Keeps a province give from colliding with cede treaties over the same land.
+	are_targets_exclusive = yes
+
+	effect = {
+		scope:target = {
+			every_location_in_province = {
+				limit = {
+					owner = scope:winner
+				}
+				save_scope_as = bpt_given_location
+				scope:loser = {
+					drop_antagonism_bomb = {
+						target = scope:bpt_given_location
+						modifier = antagonism_taking_land
+						value = bpt_given_location_antagonism
+					}
+				}
+				change_location_owner = scope:loser
+			}
+		}
+	}
+
+	ai_desire = {
+		value = 0
+	}
+}

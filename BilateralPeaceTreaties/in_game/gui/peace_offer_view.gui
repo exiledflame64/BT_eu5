@@ -246,14 +246,24 @@
 				using = bg_text_mask_container_dark_red
 
 				#TODO art color
+				# On give rows this column would always read 0.00: it renders
+				# GetBaseAntagonismCaused, i.e. the antagonism charged to the side
+				# composing the deal, and a give charges the giver nothing (the
+				# receiver's antagonism comes from the treaty effect, which the
+				# engine cannot attribute to this column - DISCOVERY 30/31).
+				# The receiver's actual figure is printed in the row's name, where
+				# localization can reach the target location and compute it.
+				# Blanked here rather than showing a meaningless zero; the box and
+				# its frame stay in place so give rows still line up with vanilla.
 				text_single = {
+					visible = "[Not(LessThan_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)0'))]"
 					text = "[PeaceTreaty.GetBaseAntagonismCaused|2]"
 					size = { 30 20 }
 					fontsize = 12
 					autoresize = no
 					parentanchor = center
 					align = center|nobaseline
-					
+
 				}
 				
 				
@@ -360,14 +370,17 @@
 	# type never bound (A.5), and a blockoverride on an instance left the rows
 	# completely unfiltered (A.7 - the pane showed vanilla positive-cost rows).
 	# The vanilla type's own inline filter works, so this one is inline too.
-	# Give-direction rows EXCEPT the gold units.
+	# Give-direction rows EXCEPT the gold entries.
 	# Identity note: the engine exposes no treaty key, tag or category to the GUI
 	# (PeaceTreaty has only Get/Has/Is helpers, custom_tags is script-only), and
 	# HasLocation is FALSE even for the Return treaties - their location comes
 	# from a select_trigger target, not the engine's own location field, which is
 	# why a HasLocation split emptied this list entirely in Session A.11.
-	# The gold units are therefore identified by their exact cost: every one of
-	# them is worth one loan = -5, and nothing else here is a round -5.
+	# The gold entries are matched by their short name instead: every value entry
+	# of bpt_pay_indemnity carries the same static label, so one comparison finds
+	# all of them, and no land row can collide with it. Cost matching was dropped
+	# because a returned province can legitimately sum to a round -10 or -20.
+	# If the comparison ever fails, gold simply renders as ordinary rows.
 	type bpt_give_treaties = dynamicgridbox {
 		datamodel_reuse_widgets = yes
 		resizetofit = yes
@@ -381,7 +394,7 @@
 				layoutpolicy_horizontal = expanding
 				widget = {
 					size = { 430 40 }
-					visible = "[And(And(Not(PeaceTreaty.NotShownInPossibleTreaties), LessThan_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)0')), Not(EqualTo_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)-5')))]"
+					visible = "[And(And(Not(PeaceTreaty.NotShownInPossibleTreaties), LessThan_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)0')), Not(EqualTo_string(PeaceTreaty.GetShortName, Localize('bpt_pay_indemnity_1_entry_short'))))]"
 					hbox = {
 						using = layoutpolicy_expanding
 						peace_treaties_inner_content = {}
@@ -2405,6 +2418,11 @@ lateralview = {
 														datamodel = "[PeaceOfferCategory.GetTreaties]"
 														item = {
 															dynamicgridbox = {
+																# BPT: vanilla calls GetInnerCategory unguarded here, so every treaty
+																# without a province group - all of ours - logged a FetchData failure;
+																# 3741 lines in one session. This guard stops the fetch.
+																
+visible = "[PeaceTreaty.HasInnerCategory]"
 																datamodel = "[PeaceTreaty.GetInnerCategory.GetTreaties]"
 																item = {
 																	selected_peace_treaties = {}
@@ -2609,7 +2627,12 @@ lateralview = {
 		alwaystransparent = no
 		parentanchor = top|left
 		position = { 577 100 }
-		size = { 478 620 }
+		# 465 wide: the 430 rows plus their value boxes and the scrollbar need the
+		# extra ~15 px, otherwise the bar sits on top of the province figures.
+		size = { 465 620 }
+		# Collapsed state lives in the view's own variable storage - the same
+		# mechanism vanilla uses for its category expand state.
+		visible = "[Not(PeaceOfferLateralView.Vars.Exists('bpt_give_pane_hidden'))]"
 		enabled = "[PeaceOfferLateralView.CanChangeOffer]"
 		using = bg_main_inner_alt
 
@@ -2702,12 +2725,12 @@ lateralview = {
 							enabled = "[Not(PeaceOfferLateralView.GetGoldTreaty.IsDecWarScoreEnabled)]"
 
 							icon = {
-								size = { 24 24 }
+								size = { 22 22 }
 								texture = "gfx/interface/icons/peace_treaty/increase_gold.dds"
 							}
 
 							text_single = {
-								size = { 78 20 }
+								size = { 62 20 }
 								autoresize = no
 								fontsize = 12
 								align = left|nobaseline
@@ -2724,9 +2747,21 @@ lateralview = {
 										spacing = 4
 										datamodel = "[PeaceOfferCategory.GetTreaties]"
 										item = {
-											button = {
+											# button_regular + button_down_toggle_properties_template
+											# is vanilla's own toggle pattern (the category filter
+											# buttons above use it); a plain `button` has no lit
+											# state, which is why selected loans looked unselected.
+											button_regular = {
 												size = { 62 30 }
-												visible = "[And(Not(PeaceTreaty.NotShownInPossibleTreaties), EqualTo_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)-5'))]"
+												blockoverride "button_push_properties" {
+													using = button_down_toggle_properties_template
+												}
+												# One coin per Loan. Session A.15 settled that entry
+												# state is per-entry for both IsSelected and
+												# IsActuallySelected, so no exclusivity expression can
+												# work - equal units make every combination valid
+												# instead, and cap the total at the vanilla five Loans.
+												visible = "[And(Not(PeaceTreaty.NotShownInPossibleTreaties), EqualTo_string(PeaceTreaty.GetShortName, Localize('bpt_pay_indemnity_1_entry_short')))]"
 												enabled = "[PeaceTreaty.IsEnabled]"
 												down = "[PeaceTreaty.IsSelected]"
 												onclick = "[PeaceTreaty.OnClick]"
@@ -2759,6 +2794,53 @@ lateralview = {
 							}
 						}
 					}
+				}
+			}
+		}
+	}
+	#BPT - collapse / expand handle for the give pane.
+	#A sibling of the pane, not a child, so it stays put and clickable while the
+	#pane is hidden. State is a view variable (PeaceOfferLateralView.Vars), the
+	#same storage vanilla uses for its category expand state.
+	#Styling: button_back_alt is the panel's own round back button (windows.gui
+	#lateralview_topbuttons); instantiating it with a blockoverride on its
+	#"back_onclick" block is the same pattern vanilla uses on button_close_alt.
+	#Two instances rather than one, because the arrow texture lives inside the
+	#type and cannot be flipped conditionally - the collapsed one is mirrored.
+	widget = {
+		allow_outside = yes
+		alwaystransparent = no
+		parentanchor = top|left
+		position = { 570 104 }
+		size = { 30 30 }
+
+		button_back_alt = {
+			visible = "[Not(PeaceOfferLateralView.Vars.Exists('bpt_give_pane_hidden'))]"
+			blockoverride "back_properties" {
+				parentanchor = center
+			}
+			blockoverride "back_onclick" {
+				action_tooltip = {
+					click_type = left
+					click_mode = single
+					title = "BPT_GIVE_PANE_TOGGLE_TT"
+					on_action = "[PeaceOfferLateralView.Vars.Toggle('bpt_give_pane_hidden')]"
+				}
+			}
+		}
+
+		button_back_alt = {
+			visible = "[PeaceOfferLateralView.Vars.Exists('bpt_give_pane_hidden')]"
+			mirror = horizontal
+			blockoverride "back_properties" {
+				parentanchor = center
+			}
+			blockoverride "back_onclick" {
+				action_tooltip = {
+					click_type = left
+					click_mode = single
+					title = "BPT_GIVE_PANE_TOGGLE_TT"
+					on_action = "[PeaceOfferLateralView.Vars.Toggle('bpt_give_pane_hidden')]"
 				}
 			}
 		}

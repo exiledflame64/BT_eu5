@@ -3,37 +3,47 @@
  bpt_return_location: "Gebiet zurückgeben"
  bpt_return_location_desc: "Wir übergeben ihnen im Rahmen dieses Friedens eines unserer eigenen Gebiete und mindern damit den Wert der übrigen Forderungen."
  bpt_return_location_entry: "[target.GetName] an sie zurückgeben"
- bpt_return_location_entry_short: "[target.GetNameWithNoTooltip] zurückgeben"
+ # Antagonismus für die empfangende Seite, inline berechnet: 0,82 + Entwicklung x 0,09.
+ bpt_return_location_entry_short: "[target.GetNameWithNoTooltip] zurückgeben ([Add_CFixedPoint('(CFixedPoint)0.82', Multiply_CFixedPoint(target.GetDevelopment, '(CFixedPoint)0.09'))|2] [antagonism|E])"
 
- # --- Reparationen: fünf gleichwertige Einheiten zu je einem Kredit (1-5 = 5-25 %) ---
+ # --- Provinz zurückgeben (alle Gebiete darin, die uns gehören) ---
+ bpt_return_province: "Provinz zurückgeben"
+ bpt_return_province_desc: "Wir übergeben ihnen im Rahmen dieses Friedens eine ganze Provinz — jedes Gebiet darin, das uns gehört — und mindern damit den Wert der übrigen Forderungen."
+ bpt_return_province_entry: "Ganz [target.GetName] an sie zurückgeben"
+ bpt_return_province_entry_short: "Ganz [target.GetNameWithNoTooltip] zurückgeben"
+
+ # --- Reparationen: fünf Einheiten zu je einem Kredit ---
+ # Alle fünf teilen sich bewusst dieselbe Kurzbezeichnung: die Geben-Leiste
+ # erkennt daran die Gold-Einträge.
  bpt_pay_indemnity_1: "Reparationen zahlen"
- bpt_pay_indemnity_1_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen. Für mehr einfach weitere hinzufügen — bis zu fünf, dem Maximum am Verhandlungstisch."
+ bpt_pay_indemnity_1_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen. Für jeden weiteren Kredit eine weitere Münze hinzufügen — fünf sind das Maximum am Verhandlungstisch."
  bpt_pay_indemnity_1_entry: "Ihnen Gold im Wert eines Kredits zahlen"
- bpt_pay_indemnity_1_entry_short: "1 Kredit"
+ bpt_pay_indemnity_1_entry_short: "+1 Kredit"
 
  bpt_pay_indemnity_2: "Reparationen zahlen"
- bpt_pay_indemnity_2_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen. Für mehr einfach weitere hinzufügen — bis zu fünf, dem Maximum am Verhandlungstisch."
+ bpt_pay_indemnity_2_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen. Für jeden weiteren Kredit eine weitere Münze hinzufügen — fünf sind das Maximum am Verhandlungstisch."
  bpt_pay_indemnity_2_entry: "Ihnen Gold im Wert eines Kredits zahlen"
- bpt_pay_indemnity_2_entry_short: "1 Kredit"
+ bpt_pay_indemnity_2_entry_short: "+1 Kredit"
 
  bpt_pay_indemnity_3: "Reparationen zahlen"
- bpt_pay_indemnity_3_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen. Für mehr einfach weitere hinzufügen — bis zu fünf, dem Maximum am Verhandlungstisch."
+ bpt_pay_indemnity_3_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen. Für jeden weiteren Kredit eine weitere Münze hinzufügen — fünf sind das Maximum am Verhandlungstisch."
  bpt_pay_indemnity_3_entry: "Ihnen Gold im Wert eines Kredits zahlen"
- bpt_pay_indemnity_3_entry_short: "1 Kredit"
+ bpt_pay_indemnity_3_entry_short: "+1 Kredit"
 
  bpt_pay_indemnity_4: "Reparationen zahlen"
- bpt_pay_indemnity_4_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen. Für mehr einfach weitere hinzufügen — bis zu fünf, dem Maximum am Verhandlungstisch."
+ bpt_pay_indemnity_4_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen. Für jeden weiteren Kredit eine weitere Münze hinzufügen — fünf sind das Maximum am Verhandlungstisch."
  bpt_pay_indemnity_4_entry: "Ihnen Gold im Wert eines Kredits zahlen"
- bpt_pay_indemnity_4_entry_short: "1 Kredit"
+ bpt_pay_indemnity_4_entry_short: "+1 Kredit"
 
  bpt_pay_indemnity_5: "Reparationen zahlen"
- bpt_pay_indemnity_5_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen. Für mehr einfach weitere hinzufügen — bis zu fünf, dem Maximum am Verhandlungstisch."
+ bpt_pay_indemnity_5_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen. Für jeden weiteren Kredit eine weitere Münze hinzufügen — fünf sind das Maximum am Verhandlungstisch."
  bpt_pay_indemnity_5_entry: "Ihnen Gold im Wert eines Kredits zahlen"
- bpt_pay_indemnity_5_entry_short: "1 Kredit"
+ bpt_pay_indemnity_5_entry_short: "+1 Kredit"
 
  # --- Bilaterale Ansicht (Geben-Leiste) ---
  BPT_GIVE_PANE_TITLE_DEMAND: "Ihr gebt"
  BPT_GIVE_PANE_TITLE_OFFER: "Ihr erhaltet zurück"
  BPT_GIVE_PANE_HINT: "Diese Bedingungen zählen gegen das Abkommen — eine Nettosumme, begrenzt auf ±100 %."
  BPT_GOLD_CONFLICT_WARNING: "Ihr fordert bereits Gold — eine Zahlung hebt das nur auf."
- BPT_GOLD_PICKER_LABEL: "Reparationen:"
+ BPT_GOLD_PICKER_LABEL: "Dukaten:"
+ BPT_GIVE_PANE_TOGGLE_TT: "Anzeigen oder ausblenden, was ihr gebt"

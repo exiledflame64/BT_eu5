@@ -32,8 +32,14 @@ bpt_return_location = {
 		}
 	}
 
-	# Giving land away causes no antagonism: base_antagonism/antagonism_type are
-	# omitted entirely (omission precedent: chi_recapture_emperor).
+	# NO base_antagonism. It produced the right number and filled the antagonism
+	# column natively, but Session A.19 settled where the engine sends it: to the
+	# side COMPOSING the deal - i.e. it made the player hated for giving land
+	# away. The engine has no way to know a scripted treaty benefits the loser.
+	# The receiver's antagonism is therefore dropped explicitly in the effect,
+	# using the same figure vanilla charges. Consequence: the antagonism column
+	# shows 0.00 on give rows, which is the honest value for the giver - the
+	# receiver's figure appears in the row's tooltip.
 
 	potential = {
 		bpt_human_involved_trigger = yes
@@ -67,30 +73,21 @@ bpt_return_location = {
 	are_targets_exclusive = yes
 
 	effect = {
+		# Antagonism onto the RECEIVER, before the transfer so the location is
+		# still valued from the giver's side. Same figure vanilla charges for
+		# taking that location (bpt_given_location_antagonism).
 		scope:target = {
-			change_location_owner = scope:loser
+			save_scope_as = bpt_given_location
 		}
-		# The side RECEIVING the land takes the antagonism for it, the same way
-		# a taker does in a normal peace. The engine only attributes peace
-		# antagonism to the deal's winner (base_antagonism above would charge
-		# the giver), so it is applied explicitly here.
-		#
-		# The bias itself is only "value = 1 #multiplied by total worth of
-		# locations etc" (biases/05_antagonism_hardcoded.txt) and the hardcoded
-		# peace path supplies that worth - a bomb without an explicit value just
-		# lands a flat 1. So the location's own peace value is passed in, which
-		# is the same number the treaty is priced with (wargoal factor excluded:
-		# antagonism should track what the land is worth, not the war's goal).
-		# is_taking_value is deliberately not used - no vanilla file uses it, and
-		# the explicit-value form is the proven one (break_union, annul_casus_belli).
 		scope:loser = {
 			drop_antagonism_bomb = {
-				target = scope:target
+				target = scope:bpt_given_location
 				modifier = antagonism_taking_land
-				value = {
-					value = "scope:target.location_peace_cost(scope:winner|scope:loser)"
-				}
+				value = bpt_given_location_antagonism
 			}
+		}
+		scope:target = {
+			change_location_owner = scope:loser
 		}
 	}
 

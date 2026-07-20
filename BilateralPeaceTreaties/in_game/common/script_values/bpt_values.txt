@@ -1,15 +1,65 @@
 ﻿# Bilateral Peace Treaties - shared values
 
 # ============================================================================
+# bpt_province_return_cost - what a whole province is worth to give back.
+# ============================================================================
+# Sum of the peace value of every location in scope:target that the winner
+# actually owns, carrying the same taker-side wargoal factor as the
+# single-location treaty. Iterator form copied from vanilla script values
+# (byz_values.txt: every_owned_location = { limit = {...} add = ... }), and the
+# bare data-function call is the documented scripted-value usage:
+# "location_peace_cost(<giver>|<taker>)" (triggers.log).
+bpt_province_return_cost = {
+	value = 0
+	scope:target = {
+		every_location_in_province = {
+			limit = {
+				owner = scope:winner
+			}
+			add = {
+				value = "location_peace_cost(scope:winner|scope:loser)"
+			}
+		}
+	}
+	multiply = bpt_taker_conquer_cost_factor
+}
+
+# ============================================================================
+# bpt_given_location_antagonism - vanilla's antagonism for one location.
+# ============================================================================
+# Vanilla itemises it as "Base 0.40 + From Development <x>". Two measured pairs
+# pin the line (Sessions A.18 and A.21):
+#   Roman  development 10 -> development part 1.32, total 1.72
+#   Vaslui development  9 -> development part 1.23, total 1.63
+# 0.09 difference per point of development, so the development part is
+# 0.42 + 0.09 x development and the total is 0.82 + 0.09 x development.
+# (The first fit assumed the development part was proportional - 0.132 per point
+# - which happened to match Roman and was wrong everywhere else.)
+# STILL A FIT, NOT THE ENGINE'S SOURCE: both points are one apart, so the slope
+# is solid but the intercept is only as good as a straight line across a wider
+# range. TESTLOG AL2 checks a high-development location to confirm it.
+# Expects the location in scope:bpt_given_location (both give-treaties save it
+# under that name before dropping the antagonism).
+bpt_given_location_antagonism = {
+	value = 0.82
+	add = {
+		value = scope:bpt_given_location.development
+		multiply = 0.09
+	}
+}
+
+# ============================================================================
 # bpt_indemnity_loan_value - gold worth one Loan to the paying side.
 # ============================================================================
-# Vanilla denominates peace gold in the payer's economy: its stepper tooltip
-# reads "Maximum is 5 Loans, totalling +717.27 (25 war score)" -> 1 Loan = 5%
-# war score = five months of trade+tax income (measured 28.69 gold per 1%).
-# Used by the bpt_pay_indemnity_* tiers; payer = scope:winner.
+# Vanilla denominates peace gold in Loans: "Maximum is 5 Loans, totalling
+# +717.27 (25 war score)" -> 1 Loan = 5% war score.
+# A Loan is literally the country's borrowable loan, the figure on the Economy
+# panel's Borrow button - measured in Session A.16: a country whose Borrow read
+# 3.42 was allowed to offer at most 17.14 gold in the vanilla peace UI, i.e.
+# 5 x 3.42. The earlier "five months of trade+tax income" reading matched one
+# observation by coincidence and was wrong (it gave 13.31 per Loan here).
 bpt_indemnity_loan_value = {
-	value = scope:winner.monthly_income_trade_and_tax
-	multiply = 5
+	value = scope:winner.country_estate_loan_size
 }
 
 # ============================================================================

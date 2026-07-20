@@ -3,37 +3,51 @@
  bpt_return_location: "Return Location"
  bpt_return_location_desc: "We will hand one of our own locations over to them as part of this peace, reducing what the rest of the deal is worth."
  bpt_return_location_entry: "Return [target.GetName] to them"
- bpt_return_location_entry_short: "Return [target.GetNameWithNoTooltip]"
+ # The antagonism the receiver takes, computed inline: 0.82 + development x 0.09
+ # (fitted to vanilla, see bpt_given_location_antagonism in script_values).
+ # Localization resolves with the treaty's scopes, so it can reach the target
+ # location - the GUI cannot (PeaceTreaty.HasLocation is false for select_trigger
+ # targets), which is why the number lives here rather than in the antagonism box.
+ bpt_return_location_entry_short: "Return [target.GetNameWithNoTooltip] ([Add_CFixedPoint('(CFixedPoint)0.82', Multiply_CFixedPoint(target.GetDevelopment, '(CFixedPoint)0.09'))|2] [antagonism|E])"
 
- # --- Pay Indemnity: five interchangeable one-loan units (pick 1-5 = 5-25%) ---
+ # --- Return Province (every location of it we hold) ---
+ bpt_return_province: "Return Province"
+ bpt_return_province_desc: "We will hand a whole province back to them as part of this peace — every location in it that we hold — reducing what the rest of the deal is worth."
+ bpt_return_province_entry: "Return all of [target.GetName] to them"
+ bpt_return_province_entry_short: "Return all of [target.GetNameWithNoTooltip]"
+
+ # --- Pay Indemnity: five one-loan units, add as many as you want to pay ---
+ # All five share one short label on purpose: the give pane matches on it to
+ # tell gold entries apart from land entries.
  bpt_pay_indemnity_1: "Pay Indemnity"
- bpt_pay_indemnity_1_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another to pay more — up to five, the most the peace table allows."
+ bpt_pay_indemnity_1_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another coin for each further loan — five is the most the peace table allows."
  bpt_pay_indemnity_1_entry: "Pay them one loan's worth of gold"
- bpt_pay_indemnity_1_entry_short: "1 loan"
+ bpt_pay_indemnity_1_entry_short: "+1 loan"
 
  bpt_pay_indemnity_2: "Pay Indemnity"
- bpt_pay_indemnity_2_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another to pay more — up to five, the most the peace table allows."
+ bpt_pay_indemnity_2_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another coin for each further loan — five is the most the peace table allows."
  bpt_pay_indemnity_2_entry: "Pay them one loan's worth of gold"
- bpt_pay_indemnity_2_entry_short: "1 loan"
+ bpt_pay_indemnity_2_entry_short: "+1 loan"
 
  bpt_pay_indemnity_3: "Pay Indemnity"
- bpt_pay_indemnity_3_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another to pay more — up to five, the most the peace table allows."
+ bpt_pay_indemnity_3_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another coin for each further loan — five is the most the peace table allows."
  bpt_pay_indemnity_3_entry: "Pay them one loan's worth of gold"
- bpt_pay_indemnity_3_entry_short: "1 loan"
+ bpt_pay_indemnity_3_entry_short: "+1 loan"
 
  bpt_pay_indemnity_4: "Pay Indemnity"
- bpt_pay_indemnity_4_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another to pay more — up to five, the most the peace table allows."
+ bpt_pay_indemnity_4_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another coin for each further loan — five is the most the peace table allows."
  bpt_pay_indemnity_4_entry: "Pay them one loan's worth of gold"
- bpt_pay_indemnity_4_entry_short: "1 loan"
+ bpt_pay_indemnity_4_entry_short: "+1 loan"
 
  bpt_pay_indemnity_5: "Pay Indemnity"
- bpt_pay_indemnity_5_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another to pay more — up to five, the most the peace table allows."
+ bpt_pay_indemnity_5_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another coin for each further loan — five is the most the peace table allows."
  bpt_pay_indemnity_5_entry: "Pay them one loan's worth of gold"
- bpt_pay_indemnity_5_entry_short: "1 loan"
+ bpt_pay_indemnity_5_entry_short: "+1 loan"
 
  # --- Bilateral view (give pane) ---
  BPT_GIVE_PANE_TITLE_DEMAND: "You Give"
  BPT_GIVE_PANE_TITLE_OFFER: "You Get Back"
  BPT_GIVE_PANE_HINT: "These terms count against the deal — one net total, capped at ±100%."
  BPT_GOLD_CONFLICT_WARNING: "You are already demanding gold — paying it back cancels out."
- BPT_GOLD_PICKER_LABEL: "Indemnity:"
+ BPT_GOLD_PICKER_LABEL: "Ducats:"
+ BPT_GIVE_PANE_TOGGLE_TT: "Show or hide what you are giving"
