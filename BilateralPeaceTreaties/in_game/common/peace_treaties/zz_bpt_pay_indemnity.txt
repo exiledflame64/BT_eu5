@@ -1,147 +1,101 @@
-﻿# Bilateral Peace Treaties - Treaty group 2: the winner pays gold to the loser
-# inside the same demand deal. Negative cost -> reduces the deal's net war score.
+﻿# Bilateral Peace Treaties - gold the winner pays to the loser inside the same
+# demand deal. Negative cost -> reduces the deal's net war score.
 #
-# KEPT IN ITS OWN FILE on purpose: spec constraint 5 (a deal must never contain
-# both a gold demand and a gold offer) has NO engine-level enforcement hook
-# (no exclusivity field in the treaty schema, no trigger exposing the deal under
-# construction - script_docs 2026-07-19). To drop give-gold entirely, delete
-# this file plus bpt_indemnity_loan_value - nothing else references them.
+# DESIGN: FIVE IDENTICAL ONE-LOAN UNITS, NOT ALTERNATIVE TIERS.
+# The engine has no mutual-exclusion mechanism for scripted treaties
+# (are_targets_exclusive only makes location/province targets exclusive with
+# cede treaties - peace_treaties/readme.txt), so a 1/3/5-loan tier set could be
+# selected all at once and add up to nonsense. Five interchangeable one-loan
+# units have no invalid combination by construction: select N of them and the
+# payment is N loans, 1..5 - exactly the vanilla range ("Maximum is 5 Loans",
+# 5% war score each, 25% total). Each click adds a loan, which is also how the
+# vanilla stepper behaves.
 #
-# WHY FIXED TIERS AND NOT A +/- STEPPER (Session A.7, data_types dump):
-# the vanilla gold stepper is PeaceOfferWarScoreTreatyGlue, whose complete
-# function set is Get*/Is*/On(Inc|Dec)*Click - there is no value setter, the
-# 0-floor lives in IsDecWarScoreEnabled (C++), and the only glue instances the
-# GUI can reach are GetGoldTreaty / GetSacrificeTreaty. A second stepper could
-# therefore only drive the SAME gold treaty with the same floor. Scripted
-# treaties are also not war-score treaties (IsWarScoreTreaty = no), so they
-# cannot be rendered as a stepper at all.
-# The earlier value-selector version rendered as one row per step (six
-# near-identical "Pay indemnity" entries), so v1 ships three clearly named
-# tiers instead - the spec's own fallback (spec 5.3).
+# All five carry the SAME cost (-5) on purpose: the give pane identifies gold
+# entries by that exact value (EqualTo_CFixedPoint), since the engine exposes no
+# treaty key, tag or category accessor to the GUI.
 #
-# VALUATION mirrors vanilla exactly (measured Session A.2/A.4): the vanilla gold
-# treaty is denominated in the payer's economy - 1 Loan = 5% war score = five
-# months of the payer's trade+tax income, capped at 5 Loans / 25%. Each tier is
-# therefore a whole number of loans, and its war-score cost is a constant.
-# No treasury requirement: author decision 2026-07-19 - mirror the vanilla loan
-# rule and let the payer go into debt.
+# VALUATION mirrors vanilla exactly (measured Session A.2/A.4): 1 Loan = 5% war
+# score = five months of the payer's trade+tax income (bpt_indemnity_loan_value).
+# No treasury requirement: author decision - mirror the vanilla loan rule and
+# let the payer go into debt.
+#
+# WHY NOT A +/- STEPPER: the vanilla stepper drives PeaceOfferLateralView's one
+# and only gold object, whose direction is fixed by the deal mode, and its glue
+# type has no setter (DISCOVERY 20/21). To drop give-gold entirely, delete this
+# file plus bpt_indemnity_loan_value - nothing else references them.
 
-bpt_pay_indemnity_small = {
+bpt_pay_indemnity_1 = {
 	category = country
-
-	cost = {
-		add = {
-			desc = "DIPLOREASON_BASE"
-			value = 5
-			multiply = -1
-		}
-	}
-
+	cost = { add = { desc = "DIPLOREASON_BASE" value = 5 multiply = -1 } }
 	potential = {
 		bpt_human_involved_trigger = yes
-		scope:winner = {
-			monthly_income_trade_and_tax > 0
-		}
+		scope:winner = { monthly_income_trade_and_tax > 0 }
 	}
-
-	allow = {
-	}
-
+	allow = { }
 	effect = {
-		scope:winner = {
-			add_gold = {
-				value = bpt_indemnity_loan_value
-				multiply = -1
-			}
-		}
-		scope:loser = {
-			add_gold = bpt_indemnity_loan_value
-		}
+		scope:winner = { add_gold = { value = bpt_indemnity_loan_value multiply = -1 } }
+		scope:loser = { add_gold = bpt_indemnity_loan_value }
 	}
-
-	ai_desire = {
-		value = 0
-	}
+	ai_desire = { value = 0 }
 }
 
-bpt_pay_indemnity_medium = {
+bpt_pay_indemnity_2 = {
 	category = country
-
-	cost = {
-		add = {
-			desc = "DIPLOREASON_BASE"
-			value = 15
-			multiply = -1
-		}
-	}
-
+	cost = { add = { desc = "DIPLOREASON_BASE" value = 5 multiply = -1 } }
 	potential = {
 		bpt_human_involved_trigger = yes
-		scope:winner = {
-			monthly_income_trade_and_tax > 0
-		}
+		scope:winner = { monthly_income_trade_and_tax > 0 }
 	}
-
-	allow = {
-	}
-
+	allow = { }
 	effect = {
-		scope:winner = {
-			add_gold = {
-				value = bpt_indemnity_loan_value
-				multiply = -3
-			}
-		}
-		scope:loser = {
-			add_gold = {
-				value = bpt_indemnity_loan_value
-				multiply = 3
-			}
-		}
+		scope:winner = { add_gold = { value = bpt_indemnity_loan_value multiply = -1 } }
+		scope:loser = { add_gold = bpt_indemnity_loan_value }
 	}
-
-	ai_desire = {
-		value = 0
-	}
+	ai_desire = { value = 0 }
 }
 
-bpt_pay_indemnity_large = {
+bpt_pay_indemnity_3 = {
 	category = country
-
-	cost = {
-		add = {
-			desc = "DIPLOREASON_BASE"
-			value = 25
-			multiply = -1
-		}
-	}
-
+	cost = { add = { desc = "DIPLOREASON_BASE" value = 5 multiply = -1 } }
 	potential = {
 		bpt_human_involved_trigger = yes
-		scope:winner = {
-			monthly_income_trade_and_tax > 0
-		}
+		scope:winner = { monthly_income_trade_and_tax > 0 }
 	}
-
-	allow = {
-	}
-
+	allow = { }
 	effect = {
-		scope:winner = {
-			add_gold = {
-				value = bpt_indemnity_loan_value
-				multiply = -5
-			}
-		}
-		scope:loser = {
-			add_gold = {
-				value = bpt_indemnity_loan_value
-				multiply = 5
-			}
-		}
+		scope:winner = { add_gold = { value = bpt_indemnity_loan_value multiply = -1 } }
+		scope:loser = { add_gold = bpt_indemnity_loan_value }
 	}
+	ai_desire = { value = 0 }
+}
 
-	ai_desire = {
-		value = 0
+bpt_pay_indemnity_4 = {
+	category = country
+	cost = { add = { desc = "DIPLOREASON_BASE" value = 5 multiply = -1 } }
+	potential = {
+		bpt_human_involved_trigger = yes
+		scope:winner = { monthly_income_trade_and_tax > 0 }
 	}
+	allow = { }
+	effect = {
+		scope:winner = { add_gold = { value = bpt_indemnity_loan_value multiply = -1 } }
+		scope:loser = { add_gold = bpt_indemnity_loan_value }
+	}
+	ai_desire = { value = 0 }
+}
+
+bpt_pay_indemnity_5 = {
+	category = country
+	cost = { add = { desc = "DIPLOREASON_BASE" value = 5 multiply = -1 } }
+	potential = {
+		bpt_human_involved_trigger = yes
+		scope:winner = { monthly_income_trade_and_tax > 0 }
+	}
+	allow = { }
+	effect = {
+		scope:winner = { add_gold = { value = bpt_indemnity_loan_value multiply = -1 } }
+		scope:loser = { add_gold = bpt_indemnity_loan_value }
+	}
+	ai_desire = { value = 0 }
 }

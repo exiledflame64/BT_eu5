@@ -352,160 +352,6 @@
 		}
 	}
 
-	# BPT bilateral view: a wide, self-positioned window hosting the peace view.
-	# Round 7: the vanilla panel is reproduced 1:1 as a 570-wide column - its
-	# internals mirror the ATTACHED lateralview type (gui/shared/windows.gui),
-	# preserving the vertical layout-expansion chain the peace content depends
-	# on (the unattached internals are content-sized and collapsed every list
-	# to zero height in round 6). The give pane is an independent, positioned
-	# second column INSIDE the same window rect, so it receives input.
-	# Precedent for a view on a window root: multi_unit_window.
-	# Width 1055 vs vanilla @left_panel_width 570 (ingame_topbar.gui).
-	type bpt_wide_lateralview = window {
-		size = { 1055 100% }
-		layer = lateralview
-		allow_outside = yes
-
-		alwaystransparent = yes
-		filter_mouse = none
-
-		# No explicit y-offset: the engine already anchors lateral-layer windows
-		# below the topbar + panel bar. Adding the vanilla template's
-		# position y = @[topbar_height + panel_bar_height] (130) on top of that
-		# pushed the whole view down by exactly one bar height in round 7,
-		# hiding the send button past the screen bottom.
-		position = { 0 0 }
-		parentanchor = left
-		movable = no
-
-		using = Animation_Show_Hide_UI
-		blockoverride "on_hide_ui" {
-			position_x = -1055
-			alpha = 0
-		}
-
-		blockoverride "on_show_ui" {
-			position_x = 0
-			alpha = 1
-		}
-
-		# ---- main column: the vanilla lateral panel, unchanged internals ----
-		widget = {
-			size = { 570 100% }
-			alwaystransparent = no
-
-			vbox = {
-				using = lateralview_margins
-				widget = {
-					using = layoutpolicy_expanding
-					vbox = {
-						using = layoutpolicy_expanding
-						block "panel_header" {}
-
-						hbox = {
-							using = layoutpolicy_expanding
-
-							widget = {
-								using = layoutpolicy_expanding
-
-								vbox = {
-									using = layoutpolicy_expanding
-									block "panel_content" {}
-								}
-
-								window_bottom_paper_template = {}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		# ---- give pane: positioned second column inside the window rect ----
-		# Geometry is window-relative: x 577 clears the 570 panel column, the
-		# top aligns with the casus-belli / tabs rows, and the fixed height keeps
-		# the pane clear of the screen bottom.
-		widget = {
-			position = { 577 130 }
-			size = { 478 620 }
-			alwaystransparent = no
-			enabled = "[PeaceOfferLateralView.CanChangeOffer]"
-			using = bg_main_inner_alt
-
-			vbox = {
-				using = layoutpolicy_expanding
-				margin = { 6 6 }
-
-				widget = {
-					layoutpolicy_horizontal = expanding
-					size = { -1 34 }
-					using = bg_scroll_card_header
-					text_single = {
-						parentanchor = center
-						align = center
-						using = Font_Type_Headers
-						text = "[Select_CString(PeaceOfferLateralView.IsDemanding, Localize('BPT_GIVE_PANE_TITLE_DEMAND'), Localize('BPT_GIVE_PANE_TITLE_OFFER'))]"
-					}
-				}
-
-				text_single = {
-					layoutpolicy_horizontal = expanding
-					size = { -1 24 }
-					autoresize = no
-					fontsize = 12
-					align = left|nobaseline
-					text = "BPT_GIVE_PANE_HINT"
-				}
-
-				# Gold one-directionality (spec constraint 5). Script cannot see the
-				# deal under construction, but the GUI can: IsDecWarScoreEnabled is
-				# false exactly at the vanilla gold treaty's zero floor, so it is
-				# true precisely when a gold demand is already dialled in.
-				text_single = {
-					visible = "[PeaceOfferLateralView.GetGoldTreaty.IsDecWarScoreEnabled]"
-					layoutpolicy_horizontal = expanding
-					size = { -1 24 }
-					autoresize = no
-					fontsize = 12
-					align = left|nobaseline
-					text = "BPT_GOLD_CONFLICT_WARNING"
-				}
-
-				scrollarea = {
-					layoutpolicy_horizontal = expanding
-					layoutpolicy_vertical = expanding
-					scrollbarpolicy_horizontal = always_off
-
-					scrollbar_vertical = {
-						using = Scrollbar_Vertical
-					}
-
-					scrollwidget = {
-						dynamicgridbox = {
-							datamodel = "[PeaceOfferLateralView.GetCategories]"
-							item = {
-								flowcontainer = {
-									ignoreinvisible = yes
-									direction = vertical
-									layoutpolicy_horizontal = expanding
-									bpt_give_treaties = {
-										visible = "[Not(PeaceOfferCategory.IsSeizeLand)]"
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		# ---- top back/close buttons, constrained to the vanilla panel width ----
-		widget = {
-			size = { 570 40 }
-			lateralview_topbuttons = {}
-			block "lateralview_topbuttons_extra" {}
-		}
-	}
 
 	# BPT bilateral view: standalone clone of `type peace_treaties` whose rows are
 	# hard-filtered to GIVE-direction entries (cost < 0).
@@ -514,21 +360,39 @@
 	# type never bound (A.5), and a blockoverride on an instance left the rows
 	# completely unfiltered (A.7 - the pane showed vanilla positive-cost rows).
 	# The vanilla type's own inline filter works, so this one is inline too.
+	# Give-direction rows EXCEPT the gold units.
+	# Identity note: the engine exposes no treaty key, tag or category to the GUI
+	# (PeaceTreaty has only Get/Has/Is helpers, custom_tags is script-only), and
+	# HasLocation is FALSE even for the Return treaties - their location comes
+	# from a select_trigger target, not the engine's own location field, which is
+	# why a HasLocation split emptied this list entirely in Session A.11.
+	# The gold units are therefore identified by their exact cost: every one of
+	# them is worth one loan = -5, and nothing else here is a round -5.
 	type bpt_give_treaties = dynamicgridbox {
 		datamodel_reuse_widgets = yes
 		resizetofit = yes
 		datamodel = "[PeaceOfferCategory.GetTreaties]"
+		# flowcontainer + ignoreinvisible: without it every filtered-out row still
+		# reserved its 40px, leaving a huge blank block above the visible entries.
 		item = {
-			widget = {
-				size = { 430 40 }
-				visible = "[And(Not(PeaceTreaty.NotShownInPossibleTreaties), LessThan_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)0'))]"
-				hbox = {
-					using = layoutpolicy_expanding
-					peace_treaties_inner_content = {}
+			flowcontainer = {
+				ignoreinvisible = yes
+				direction = vertical
+				layoutpolicy_horizontal = expanding
+				widget = {
+					size = { 430 40 }
+					visible = "[And(And(Not(PeaceTreaty.NotShownInPossibleTreaties), LessThan_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)0')), Not(EqualTo_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)-5')))]"
+					hbox = {
+						using = layoutpolicy_expanding
+						peace_treaties_inner_content = {}
+					}
 				}
 			}
 		}
 	}
+
+	# (The gold tiers are no longer a row list - they render as the compact
+	#  picker inside the give pane, built from the same treaties.)
 
 	type inner_category_treaty = card_list_button {
 		size = {430 37}
@@ -1187,7 +1051,7 @@
 	}
 }
 
-bpt_wide_lateralview = {
+lateralview = {
 	name = "peace_offer_view"
 	blockoverride "panel_header" {
 		window_header_alt = {
@@ -2724,6 +2588,173 @@ bpt_wide_lateralview = {
 									frame_grid = { 3 1 }
 									texture = "gfx/interface/icons/diplomatic_status/ai_accept_decline_icon.dds"
 									frame = 1
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	#BPT BILATERAL VIEW - the "You Give" pane.
+	#Attached as a DIRECT CHILD of the view root, which is the whole point: the
+	#root (type lateralview) and its host both carry allow_outside = yes, so the
+	#chain that lets a child live outside the 570-wide panel rect is unbroken.
+	#Round 5 failed because the pane sat deep inside panel_content, where several
+	#intermediate widgets clip; round 9 failed the other way, by widening the
+	#window until its transparent areas swallowed map clicks. Here the window
+	#stays vanilla-narrow, so every pixel outside these two panels is map again.
+	widget = {
+		allow_outside = yes
+		alwaystransparent = no
+		parentanchor = top|left
+		position = { 577 100 }
+		size = { 478 620 }
+		enabled = "[PeaceOfferLateralView.CanChangeOffer]"
+		using = bg_main_inner_alt
+
+		vbox = {
+			using = layoutpolicy_expanding
+			margin = { 6 6 }
+
+			widget = {
+				layoutpolicy_horizontal = expanding
+				size = { -1 34 }
+				using = bg_scroll_card_header
+				text_single = {
+					parentanchor = center
+					align = center
+					using = Font_Type_Headers
+					text = "[Select_CString(PeaceOfferLateralView.IsDemanding, Localize('BPT_GIVE_PANE_TITLE_DEMAND'), Localize('BPT_GIVE_PANE_TITLE_OFFER'))]"
+				}
+			}
+
+			text_single = {
+				layoutpolicy_horizontal = expanding
+				size = { -1 24 }
+				autoresize = no
+				fontsize = 12
+				align = left|nobaseline
+				text = "BPT_GIVE_PANE_HINT"
+			}
+
+			# Gold one-directionality (spec constraint 5). Script cannot see the
+			# deal under construction, but the GUI can: IsDecWarScoreEnabled is
+			# false exactly at the vanilla gold treaty's zero floor, so it is
+			# true precisely when a gold demand is already dialled in.
+			text_single = {
+				visible = "[PeaceOfferLateralView.GetGoldTreaty.IsDecWarScoreEnabled]"
+				layoutpolicy_horizontal = expanding
+				size = { -1 24 }
+				autoresize = no
+				fontsize = 12
+				align = left|nobaseline
+				text = "BPT_GOLD_CONFLICT_WARNING"
+			}
+
+			scrollarea = {
+				layoutpolicy_horizontal = expanding
+				layoutpolicy_vertical = expanding
+				scrollbarpolicy_horizontal = always_off
+
+				scrollbar_vertical = {
+					using = Scrollbar_Vertical
+				}
+
+				scrollwidget = {
+					vbox = {
+						layoutpolicy_horizontal = expanding
+
+						# Land (and any other targeted) gives.
+						dynamicgridbox = {
+							datamodel = "[PeaceOfferLateralView.GetCategories]"
+							item = {
+								flowcontainer = {
+									ignoreinvisible = yes
+									direction = vertical
+									layoutpolicy_horizontal = expanding
+									bpt_give_treaties = {
+										visible = "[Not(PeaceOfferCategory.IsSeizeLand)]"
+									}
+								}
+							}
+						}
+
+						# Gold: five interchangeable one-loan units rendered as one
+						# compact row - click a coin to add a loan, click it again
+						# to take it back, up to the vanilla maximum of five.
+						# Equal units mean no invalid combination exists, which is
+						# how the "pick only one" problem is solved: the engine has
+						# no mutual exclusion for scripted treaties, so alternative
+						# 1/3/5 tiers could all be selected at once.
+						# A real +/- stepper is impossible here - the peace view
+						# owns exactly one gold object whose direction comes from
+						# the deal mode, and its glue type has no setter
+						# (DISCOVERY 20/21). Pattern: vanilla's own selected-treaty
+						# summary row (hbox + datamodel + button).
+						# Greys out while a gold DEMAND is dialled in, keeping the
+						# two directions interchangeable (spec constraint 5).
+						hbox = {
+							layoutpolicy_horizontal = expanding
+							ignoreinvisible = yes
+							margin = { 2 6 }
+							spacing = 5
+							enabled = "[Not(PeaceOfferLateralView.GetGoldTreaty.IsDecWarScoreEnabled)]"
+
+							icon = {
+								size = { 24 24 }
+								texture = "gfx/interface/icons/peace_treaty/increase_gold.dds"
+							}
+
+							text_single = {
+								size = { 78 20 }
+								autoresize = no
+								fontsize = 12
+								align = left|nobaseline
+								text = "BPT_GOLD_PICKER_LABEL"
+							}
+
+							hbox = {
+								ignoreinvisible = yes
+								spacing = 4
+								datamodel = "[PeaceOfferLateralView.GetCategories]"
+								item = {
+									hbox = {
+										ignoreinvisible = yes
+										spacing = 4
+										datamodel = "[PeaceOfferCategory.GetTreaties]"
+										item = {
+											button = {
+												size = { 62 30 }
+												visible = "[And(Not(PeaceTreaty.NotShownInPossibleTreaties), EqualTo_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)-5'))]"
+												enabled = "[PeaceTreaty.IsEnabled]"
+												down = "[PeaceTreaty.IsSelected]"
+												onclick = "[PeaceTreaty.OnClick]"
+
+												text_single = {
+													parentanchor = center
+													align = center|nobaseline
+													fontsize = 12
+													text = "[PeaceTreaty.GetShortName]"
+												}
+
+												tooltipwidget = {
+													SimpleContextualTooltipType = {
+														blockoverride "title_icon" {
+															icon = {
+																size = { 32 32 }
+																texture = "gfx/interface/icons/peace_treaty/increase_gold.dds"
+															}
+														}
+														blockoverride "title_text" {
+															text = "[PeaceTreaty.GetShortName]"
+														}
+														lowpriotextcontext = "[PeaceTreaty.GetInfo]"
+													}
+												}
+											}
+										}
+									}
 								}
 							}
 						}

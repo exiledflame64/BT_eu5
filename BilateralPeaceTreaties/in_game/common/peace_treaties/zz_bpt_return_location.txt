@@ -18,9 +18,7 @@ bpt_return_location = {
 	# 1.78 base x 1.5 "Show Superiority" = 2.67 in the demand list AND the Offer
 	# Tribute tab). Mirrored via bpt_taker_conquer_cost_factor
 	# (script_values/bpt_values.txt); the taker of a returned location is scope:loser.
-	# Vanilla multiplies the location value by the TAKER's side conquer_cost of
-	# the war's wargoal (Session A.2; the taker of a return = scope:loser).
-	# Factor table is per war-goal TYPE - the trigger accepts nothing finer
+	# The factor table is per war-goal TYPE - the trigger accepts nothing finer
 	# (Session A.4); see bpt_values.txt for exactness notes. The vanilla
 	# component breakdown (tax base/development/...) is computed inside the
 	# hardcoded valuation and is not exposed to script - the tooltip shows the
@@ -71,6 +69,28 @@ bpt_return_location = {
 	effect = {
 		scope:target = {
 			change_location_owner = scope:loser
+		}
+		# The side RECEIVING the land takes the antagonism for it, the same way
+		# a taker does in a normal peace. The engine only attributes peace
+		# antagonism to the deal's winner (base_antagonism above would charge
+		# the giver), so it is applied explicitly here.
+		#
+		# The bias itself is only "value = 1 #multiplied by total worth of
+		# locations etc" (biases/05_antagonism_hardcoded.txt) and the hardcoded
+		# peace path supplies that worth - a bomb without an explicit value just
+		# lands a flat 1. So the location's own peace value is passed in, which
+		# is the same number the treaty is priced with (wargoal factor excluded:
+		# antagonism should track what the land is worth, not the war's goal).
+		# is_taking_value is deliberately not used - no vanilla file uses it, and
+		# the explicit-value form is the proven one (break_union, annul_casus_belli).
+		scope:loser = {
+			drop_antagonism_bomb = {
+				target = scope:target
+				modifier = antagonism_taking_land
+				value = {
+					value = "scope:target.location_peace_cost(scope:winner|scope:loser)"
+				}
+			}
 		}
 	}
 
