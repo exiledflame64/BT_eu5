@@ -25,37 +25,114 @@ bpt_province_return_cost = {
 }
 
 # ============================================================================
-# bpt_given_location_antagonism - vanilla's antagonism for one location.
+# ANTAGONISM MODEL - vanilla's receiver-antagonism for handing a location over.
 # ============================================================================
-# Vanilla itemises it as "Base 0.40 + From Development <x>". Four measured pairs
-# (Sessions A.18, A.21, A.22):
-#   development  6 -> 0.95      development 10 -> 1.32
-#   development  9 -> 1.23      development 16 -> 1.74
-# The slope FALLS as development rises - 0.093, 0.090, 0.070 per point across
-# those spans - so the relationship is a curve, not a line. It tracks
-# 0.51 x sqrt(development) - 0.30 closely, but no square root exists in the
-# modding surface (no vanilla script value uses sqrt; the data-function set is
-# Add/Multiply/Divide only).
-# FORM: a ratio, (4.5978 x dev + 14.413) / (dev + 25.111). Exact at development
-# 6, 10 and 16 (1.35 / 1.72 / 2.14) and a hundredth high at 9 (1.64 vs 1.63,
-# inside vanilla's own 2-decimal rounding). A ratio was chosen over the straight
-# segments used earlier because it is one expression of multiply/add/divide -
-# the subset localization can also evaluate - so the row label computes the
-# identical figure inline and the two can never drift. Branch forms cannot:
-# loc rejects Select_CFixedPoint / LessThan_CFixedPoint and printed them raw
-# (Session A.23).
-# Three earlier fits were wrong for the same reason each time - too few samples:
-# 0.132/point matched only development 10, 0.09/point only 9-10, and the linear
-# form missed development 16 by 0.12.
-# Expects the location in scope:bpt_given_location (both give-treaties save it
-# under that name before dropping the antagonism).
-bpt_given_location_antagonism = {
-	value = scope:bpt_given_location.development
-	multiply = 4.5978
-	add = 14.413
+# Vanilla itemises the figure as
+#   Base 0.40  +  From Development  +  [GP Score of GIVER]  +  [GP Score of RECEIVER]
+# where each great-power line is a percentage of Core (= Base + Development):
+#   GIVER is a great power     -> -50% of Core   (FLAT: identical for England
+#                                                  score 45.75 and France 111, so it
+#                                                  keys off is_great_power, not score)
+#   RECEIVER is a great power  -> +25% of Core
+#   neither a great power      ->  no line
+# Every combination measured (Sessions A.18-A.28): Eng(GP)->Scot(non)=Core x0.50;
+# Fra(GP)->Eng(GP)=Core x0.75; Scot(non)->Eng(GP)=Core x1.25; non->non=Core. So
+#   antagonism = Core x (1 - 0.5*giverGP + 0.25*receiverGP).
+#
+# SCOPE PROBLEM + SOLUTION. The EFFECT can read both parties (owner = giver,
+# scope:loser = receiver), so bpt_given_location_antagonism computes the whole thing
+# at once. The row LABEL cannot: a MakeScope.ScriptValue call is ROOT-ONLY (A.26),
+# so a value called on the location sees `owner` (the giver) but never the receiver.
+# The label therefore ADDS two parts with separate calls + loc arithmetic:
+#   Core x (1 - 0.5*giverGP)   <- bpt_location_give_antagonism, called on the location
+#   + Core x 0.25*receiverGP   <- bpt_location_core (on the location) TIMES
+#                                 bpt_receiver_gp_factor (on TARGET_COUNTRY = the
+#                                 losing side = the receiver; vanilla's own peace loc
+#                                 confirms TARGET_COUNTRY gives to COUNTRY).
+# Both routes reach the identical number, so shown == applied. Hence the split into
+# bpt_location_core / bpt_location_give_antagonism / bpt_receiver_gp_factor.
+#
+# CORE = (8.09*dev + 53.15) / (dev + 69.33). Re-fitted (A.27) over nine measured
+# pairs spanning development 6-36 (6->1.35 ... 36->3.27), within 0.03 everywhere. No
+# sqrt exists in the modding surface (Add/Multiply/Divide only), so a ratio
+# approximates vanilla's ~0.51*sqrt(dev) shape. Standing rule, earned four times:
+# never fit until the samples span the range.
+
+# Core alone (Base + Development), no great-power factor. Root = the location.
+bpt_location_core = {
+	value = development
+	multiply = 8.09
+	add = 53.15
 	divide = {
-		value = scope:bpt_given_location.development
-		add = 25.111
+		value = development
+		add = 69.33
+	}
+}
+
+# +0.25 weight iff the country this is called on is a great power, else 0. Root =
+# a country: the RECEIVER (scope:loser in the effect, TARGET_COUNTRY in the label).
+bpt_receiver_gp_factor = {
+	value = 0
+	if = {
+		limit = { is_great_power = yes }
+		add = 0.25
+	}
+}
+
+# Core with the GIVER's -50% only (label part 1, and the province sum). Root = the
+# location; `owner` is the giver - still winner-owned when read (the effect bombs
+# before the transfer; the label reads the current owner). Confirmed to resolve in
+# the label (A.27: a non-GP giver showed full Core, a GP giver showed half).
+bpt_location_give_antagonism = {
+	value = bpt_location_core
+	if = {
+		limit = { owner = { is_great_power = yes } }
+		multiply = 0.5
+	}
+}
+
+# ============================================================================
+# bpt_given_location_antagonism - the FULL figure, for the EFFECT.
+# ============================================================================
+# The bomb's value is evaluated in scope:loser (the receiver). This hops into the
+# saved location for Core + the giver, and reads scope:loser for the receiver - both
+# reachable in effect scope, so the whole formula is one expression here.
+bpt_given_location_antagonism = {
+	value = 0
+	scope:bpt_given_location = {
+		add = {
+			value = bpt_location_core
+			multiply = {
+				value = 1
+				if = { limit = { owner = { is_great_power = yes } } subtract = 0.5 }
+				if = { limit = { scope:loser = { is_great_power = yes } } add = 0.25 }
+			}
+		}
+	}
+}
+
+# ============================================================================
+# bpt_province_return_antagonism / bpt_province_core_sum - the province label's
+# two summed parts.
+# ============================================================================
+# Both iterate every location in the province (root = the province, reached via
+# MakeScope from the label). scope:winner is unresolved there, so no owner filter is
+# possible (A.26); summing all locations is exact whenever the giver owns the whole
+# province - the normal give-back case - and each location still carries its own
+# owner's giver-factor, so a third-party split still reads sensibly.
+# Part 1 = sum of the giver-term figure; Part 2 = sum of bare Core, which the label
+# multiplies by bpt_receiver_gp_factor (called on TARGET_COUNTRY) to add the +25%.
+bpt_province_return_antagonism = {
+	value = 0
+	every_location_in_province = {
+		add = bpt_location_give_antagonism
+	}
+}
+
+bpt_province_core_sum = {
+	value = 0
+	every_location_in_province = {
+		add = bpt_location_core
 	}
 }
 

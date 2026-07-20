@@ -3,15 +3,21 @@
  bpt_return_location: "Gebiet anbieten"
  bpt_return_location_desc: "Wir übergeben ihnen im Rahmen dieses Friedens eines unserer eigenen Gebiete und mindern damit den Wert der übrigen Forderungen."
  bpt_return_location_entry: "[target.GetName] anbieten"
- # Antagonismus für die empfangende Seite, inline berechnet - dasselbe Verhältnis
- # wie bpt_given_location_antagonism (script_values). Beide zusammen pflegen.
- bpt_return_location_entry_short: "[target.GetNameWithNoTooltip] anbieten ([Divide_CFixedPoint(Add_CFixedPoint(Multiply_CFixedPoint(target.GetDevelopment,'(CFixedPoint)4.5978'),'(CFixedPoint)14.413'),Add_CFixedPoint(target.GetDevelopment,'(CFixedPoint)25.111'))|2] [antagonism|E])"
+ # Antagonismus des Empfängers = Core·(1 − 0.5·GeberGM) + 0.25·Core·EmpfängerGM. Loc
+ # erreicht den Empfänger vom Gebiets-Root nicht (root-only, A.26), daher zwei addierte
+ # Teile: bpt_location_give_antagonism (Core + Geber-Reduktion, am Gebiet) plus
+ # bpt_location_core (Core) mal bpt_receiver_gp_factor (auf TARGET_COUNTRY = Empfänger).
+ bpt_return_location_entry_short: "[target.GetNameWithNoTooltip] anbieten ([Add_CFixedPoint(target.MakeScope.ScriptValue('bpt_location_give_antagonism'),Multiply_CFixedPoint(target.MakeScope.ScriptValue('bpt_location_core'),TARGET_COUNTRY.MakeScope.ScriptValue('bpt_receiver_gp_factor')))|2] [antagonism|E])"
 
  # --- Provinz anbieten (alle Gebiete darin, die uns gehören) ---
  bpt_return_province: "Provinz anbieten"
  bpt_return_province_desc: "Wir übergeben ihnen im Rahmen dieses Friedens eine ganze Provinz — jedes Gebiet darin, das uns gehört — und mindern damit den Wert der übrigen Forderungen."
  bpt_return_province_entry: "Ganz [target.GetName] anbieten"
- bpt_return_province_entry_short: "Ganz [target.GetNameWithNoTooltip] anbieten"
+ # Gesamt-Antagonismus des Empfängers für die Provinz, in zwei summierten Teilen (loc
+ # erreicht den Empfänger vom Provinz-Root nicht): bpt_province_return_antagonism
+ # (Σ Core + Geber-Reduktion) plus bpt_province_core_sum (Σ Core) mal dem
+ # Empfänger-Faktor auf TARGET_COUNTRY. Siehe bpt_values.txt.
+ bpt_return_province_entry_short: "Ganz [target.GetNameWithNoTooltip] anbieten ([Add_CFixedPoint(target.MakeScope.ScriptValue('bpt_province_return_antagonism'),Multiply_CFixedPoint(target.MakeScope.ScriptValue('bpt_province_core_sum'),TARGET_COUNTRY.MakeScope.ScriptValue('bpt_receiver_gp_factor')))|2] [antagonism|E])"
 
  # --- Reparationen: fünf Einheiten zu je einem Kredit ---
  # Alle fünf teilen sich bewusst dieselbe Kurzbezeichnung: die Geben-Leiste
