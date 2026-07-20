@@ -1,16 +1,17 @@
 ﻿l_german:
- # --- Gebiet zurückgeben ---
- bpt_return_location: "Gebiet zurückgeben"
+ # --- Gebiet anbieten ---
+ bpt_return_location: "Gebiet anbieten"
  bpt_return_location_desc: "Wir übergeben ihnen im Rahmen dieses Friedens eines unserer eigenen Gebiete und mindern damit den Wert der übrigen Forderungen."
- bpt_return_location_entry: "[target.GetName] an sie zurückgeben"
- # Antagonismus für die empfangende Seite, inline berechnet: 0,82 + Entwicklung x 0,09.
- bpt_return_location_entry_short: "[target.GetNameWithNoTooltip] zurückgeben ([Add_CFixedPoint('(CFixedPoint)0.82', Multiply_CFixedPoint(target.GetDevelopment, '(CFixedPoint)0.09'))|2] [antagonism|E])"
+ bpt_return_location_entry: "[target.GetName] anbieten"
+ # Antagonismus für die empfangende Seite, inline berechnet - dasselbe Verhältnis
+ # wie bpt_given_location_antagonism (script_values). Beide zusammen pflegen.
+ bpt_return_location_entry_short: "[target.GetNameWithNoTooltip] anbieten ([Divide_CFixedPoint(Add_CFixedPoint(Multiply_CFixedPoint(target.GetDevelopment,'(CFixedPoint)4.5978'),'(CFixedPoint)14.413'),Add_CFixedPoint(target.GetDevelopment,'(CFixedPoint)25.111'))|2] [antagonism|E])"
 
- # --- Provinz zurückgeben (alle Gebiete darin, die uns gehören) ---
- bpt_return_province: "Provinz zurückgeben"
+ # --- Provinz anbieten (alle Gebiete darin, die uns gehören) ---
+ bpt_return_province: "Provinz anbieten"
  bpt_return_province_desc: "Wir übergeben ihnen im Rahmen dieses Friedens eine ganze Provinz — jedes Gebiet darin, das uns gehört — und mindern damit den Wert der übrigen Forderungen."
- bpt_return_province_entry: "Ganz [target.GetName] an sie zurückgeben"
- bpt_return_province_entry_short: "Ganz [target.GetNameWithNoTooltip] zurückgeben"
+ bpt_return_province_entry: "Ganz [target.GetName] anbieten"
+ bpt_return_province_entry_short: "Ganz [target.GetNameWithNoTooltip] anbieten"
 
  # --- Reparationen: fünf Einheiten zu je einem Kredit ---
  # Alle fünf teilen sich bewusst dieselbe Kurzbezeichnung: die Geben-Leiste

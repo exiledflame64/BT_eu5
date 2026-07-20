@@ -178,7 +178,23 @@
 				size = { 20 20 }
 			}
 
+			# BPT: a gold-indemnity treaty's own short name is the static "+1 loan"
+			# (the pane filters on that string), so in the summary list it would
+			# read "+1 loan" instead of the amount. Show the ducat value there
+			# instead - the payer is the deal's winner, GetEstateLoanSize is the
+			# Economy-panel Borrow figure. Everything else keeps GetShortName.
+			# Gold row: Select_CFixedPoint picks the payer's loan (winner = player
+			# while demanding, selected participant while offering).
 			text_single = {
+				visible = "[EqualTo_string(PeaceTreaty.GetShortName, Localize('bpt_pay_indemnity_1_entry_short'))]"
+				layoutpolicy_horizontal = expanding
+				size = { -1 20 }
+				autoresize = no
+				align = left|nobaseline
+				text = "+[Select_CFixedPoint(PeaceOfferLateralView.IsDemanding, PeaceOfferLateralView.GetPlayer.GetEstateLoanSize, PeaceOfferLateralView.GetSelectedParticipant.GetEstateLoanSize)|2][gold_i]"
+			}
+			text_single = {
+				visible = "[Not(EqualTo_string(PeaceTreaty.GetShortName, Localize('bpt_pay_indemnity_1_entry_short')))]"
 				layoutpolicy_horizontal = expanding
 				size = { -1 20 }
 				autoresize = no
@@ -2703,91 +2719,102 @@ visible = "[PeaceTreaty.HasInnerCategory]"
 							}
 						}
 
-						# Gold: five interchangeable one-loan units rendered as one
-						# compact row - click a coin to add a loan, click it again
-						# to take it back, up to the vanilla maximum of five.
-						# Equal units mean no invalid combination exists, which is
-						# how the "pick only one" problem is solved: the engine has
-						# no mutual exclusion for scripted treaties, so alternative
-						# 1/3/5 tiers could all be selected at once.
-						# A real +/- stepper is impossible here - the peace view
-						# owns exactly one gold object whose direction comes from
-						# the deal mode, and its glue type has no setter
-						# (DISCOVERY 20/21). Pattern: vanilla's own selected-treaty
-						# summary row (hbox + datamodel + button).
-						# Greys out while a gold DEMAND is dialled in, keeping the
-						# two directions interchangeable (spec constraint 5).
+					}
+				}
+			}
+
+			# Gold: five interchangeable one-loan units rendered as one
+			# compact row - click a coin to add a loan, click it again
+			# to take it back, up to the vanilla maximum of five.
+			# PINNED BELOW THE LIST, deliberately outside the scrollarea, so the
+			# coins stay reachable however far the land list is scrolled.
+			# Equal units mean no invalid combination exists, which is
+			# how the "pick only one" problem is solved: the engine has
+			# no mutual exclusion for scripted treaties, so alternative
+			# 1/3/5 tiers could all be selected at once.
+			# A real +/- stepper is impossible here - the peace view
+			# owns exactly one gold object whose direction comes from
+			# the deal mode, and its glue type has no setter
+			# (DISCOVERY 20/21). Pattern: vanilla's own selected-treaty
+			# summary row (hbox + datamodel + button).
+			# Greys out while a gold DEMAND is dialled in, keeping the
+			# two directions interchangeable (spec constraint 5).
+			hbox = {
+				layoutpolicy_horizontal = expanding
+				ignoreinvisible = yes
+				margin = { 2 6 }
+				spacing = 5
+				enabled = "[Not(PeaceOfferLateralView.GetGoldTreaty.IsDecWarScoreEnabled)]"
+
+				icon = {
+					size = { 22 22 }
+					texture = "gfx/interface/icons/peace_treaty/increase_gold.dds"
+				}
+
+				text_single = {
+					size = { 62 20 }
+					autoresize = no
+					fontsize = 12
+					align = left|nobaseline
+					text = "BPT_GOLD_PICKER_LABEL"
+				}
+
+				hbox = {
+					ignoreinvisible = yes
+					spacing = 4
+					datamodel = "[PeaceOfferLateralView.GetCategories]"
+					item = {
 						hbox = {
-							layoutpolicy_horizontal = expanding
 							ignoreinvisible = yes
-							margin = { 2 6 }
-							spacing = 5
-							enabled = "[Not(PeaceOfferLateralView.GetGoldTreaty.IsDecWarScoreEnabled)]"
+							spacing = 4
+							datamodel = "[PeaceOfferCategory.GetTreaties]"
+							item = {
+								# button_regular + button_down_toggle_properties_template
+								# is vanilla's own toggle pattern (the category filter
+								# buttons above use it); a plain `button` has no lit
+								# state, which is why selected loans looked unselected.
+								button_regular = {
+									size = { 62 30 }
+									blockoverride "button_push_properties" {
+										using = button_down_toggle_properties_template
+									}
+									# One coin per Loan. Session A.15 settled that entry
+									# state is per-entry for both IsSelected and
+									# IsActuallySelected, so no exclusivity expression can
+									# work - equal units make every combination valid
+									# instead, and cap the total at the vanilla five Loans.
+									visible = "[And(Not(PeaceTreaty.NotShownInPossibleTreaties), EqualTo_string(PeaceTreaty.GetShortName, Localize('bpt_pay_indemnity_1_entry_short')))]"
+									enabled = "[PeaceTreaty.IsEnabled]"
+									down = "[PeaceTreaty.IsSelected]"
+									onclick = "[PeaceTreaty.OnClick]"
 
-							icon = {
-								size = { 22 22 }
-								texture = "gfx/interface/icons/peace_treaty/increase_gold.dds"
-							}
+									# Each coin is worth one Loan; show what that actually costs in
+									# ducats instead of the abstract label. Country.GetEstateLoanSize
+									# is the same figure the Economy panel's Borrow button shows, so
+									# button, tooltip and payment all agree. The payer is the deal's
+									# winner: the player while demanding, the other side while offering.
+									# (The treaty's short name stays "+1 loan" - the pane matches on it
+									#  to tell gold rows from land rows.)
+										text_single = {
+											parentanchor = center
+											align = center|nobaseline
+											fontsize = 12
+											text = "+[Select_CFixedPoint(PeaceOfferLateralView.IsDemanding, PeaceOfferLateralView.GetPlayer.GetEstateLoanSize, PeaceOfferLateralView.GetSelectedParticipant.GetEstateLoanSize)|2]"
+										}
 
-							text_single = {
-								size = { 62 20 }
-								autoresize = no
-								fontsize = 12
-								align = left|nobaseline
-								text = "BPT_GOLD_PICKER_LABEL"
-							}
-
-							hbox = {
-								ignoreinvisible = yes
-								spacing = 4
-								datamodel = "[PeaceOfferLateralView.GetCategories]"
-								item = {
-									hbox = {
-										ignoreinvisible = yes
-										spacing = 4
-										datamodel = "[PeaceOfferCategory.GetTreaties]"
-										item = {
-											# button_regular + button_down_toggle_properties_template
-											# is vanilla's own toggle pattern (the category filter
-											# buttons above use it); a plain `button` has no lit
-											# state, which is why selected loans looked unselected.
-											button_regular = {
-												size = { 62 30 }
-												blockoverride "button_push_properties" {
-													using = button_down_toggle_properties_template
-												}
-												# One coin per Loan. Session A.15 settled that entry
-												# state is per-entry for both IsSelected and
-												# IsActuallySelected, so no exclusivity expression can
-												# work - equal units make every combination valid
-												# instead, and cap the total at the vanilla five Loans.
-												visible = "[And(Not(PeaceTreaty.NotShownInPossibleTreaties), EqualTo_string(PeaceTreaty.GetShortName, Localize('bpt_pay_indemnity_1_entry_short')))]"
-												enabled = "[PeaceTreaty.IsEnabled]"
-												down = "[PeaceTreaty.IsSelected]"
-												onclick = "[PeaceTreaty.OnClick]"
-
-												text_single = {
-													parentanchor = center
-													align = center|nobaseline
-													fontsize = 12
-													text = "[PeaceTreaty.GetShortName]"
-												}
-
-												tooltipwidget = {
-													SimpleContextualTooltipType = {
-														blockoverride "title_icon" {
-															icon = {
-																size = { 32 32 }
-																texture = "gfx/interface/icons/peace_treaty/increase_gold.dds"
-															}
-														}
-														blockoverride "title_text" {
-															text = "[PeaceTreaty.GetShortName]"
-														}
-														lowpriotextcontext = "[PeaceTreaty.GetInfo]"
-													}
+									tooltipwidget = {
+										SimpleContextualTooltipType = {
+											blockoverride "title_icon" {
+												icon = {
+													size = { 32 32 }
+													texture = "gfx/interface/icons/peace_treaty/increase_gold.dds"
 												}
 											}
+											# GetShortName is the static "+1 loan"; show the ducat value.
+											blockoverride "title_text" {
+												text = "+[Select_CFixedPoint(PeaceOfferLateralView.IsDemanding, PeaceOfferLateralView.GetPlayer.GetEstateLoanSize, PeaceOfferLateralView.GetSelectedParticipant.GetEstateLoanSize)|2][gold_i]"
+											}
+											lowpriotextcontext = "[PeaceTreaty.GetInfo]"
 										}
 									}
 								}

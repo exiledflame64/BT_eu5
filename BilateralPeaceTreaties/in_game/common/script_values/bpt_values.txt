@@ -27,24 +27,35 @@ bpt_province_return_cost = {
 # ============================================================================
 # bpt_given_location_antagonism - vanilla's antagonism for one location.
 # ============================================================================
-# Vanilla itemises it as "Base 0.40 + From Development <x>". Two measured pairs
-# pin the line (Sessions A.18 and A.21):
-#   Roman  development 10 -> development part 1.32, total 1.72
-#   Vaslui development  9 -> development part 1.23, total 1.63
-# 0.09 difference per point of development, so the development part is
-# 0.42 + 0.09 x development and the total is 0.82 + 0.09 x development.
-# (The first fit assumed the development part was proportional - 0.132 per point
-# - which happened to match Roman and was wrong everywhere else.)
-# STILL A FIT, NOT THE ENGINE'S SOURCE: both points are one apart, so the slope
-# is solid but the intercept is only as good as a straight line across a wider
-# range. TESTLOG AL2 checks a high-development location to confirm it.
+# Vanilla itemises it as "Base 0.40 + From Development <x>". Four measured pairs
+# (Sessions A.18, A.21, A.22):
+#   development  6 -> 0.95      development 10 -> 1.32
+#   development  9 -> 1.23      development 16 -> 1.74
+# The slope FALLS as development rises - 0.093, 0.090, 0.070 per point across
+# those spans - so the relationship is a curve, not a line. It tracks
+# 0.51 x sqrt(development) - 0.30 closely, but no square root exists in the
+# modding surface (no vanilla script value uses sqrt; the data-function set is
+# Add/Multiply/Divide only).
+# FORM: a ratio, (4.5978 x dev + 14.413) / (dev + 25.111). Exact at development
+# 6, 10 and 16 (1.35 / 1.72 / 2.14) and a hundredth high at 9 (1.64 vs 1.63,
+# inside vanilla's own 2-decimal rounding). A ratio was chosen over the straight
+# segments used earlier because it is one expression of multiply/add/divide -
+# the subset localization can also evaluate - so the row label computes the
+# identical figure inline and the two can never drift. Branch forms cannot:
+# loc rejects Select_CFixedPoint / LessThan_CFixedPoint and printed them raw
+# (Session A.23).
+# Three earlier fits were wrong for the same reason each time - too few samples:
+# 0.132/point matched only development 10, 0.09/point only 9-10, and the linear
+# form missed development 16 by 0.12.
 # Expects the location in scope:bpt_given_location (both give-treaties save it
 # under that name before dropping the antagonism).
 bpt_given_location_antagonism = {
-	value = 0.82
-	add = {
+	value = scope:bpt_given_location.development
+	multiply = 4.5978
+	add = 14.413
+	divide = {
 		value = scope:bpt_given_location.development
-		multiply = 0.09
+		add = 25.111
 	}
 }
 
