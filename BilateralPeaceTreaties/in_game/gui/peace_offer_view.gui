@@ -369,7 +369,12 @@
 		alwaystransparent = yes
 		filter_mouse = none
 
-		position = { 0 130 }
+		# No explicit y-offset: the engine already anchors lateral-layer windows
+		# below the topbar + panel bar. Adding the vanilla template's
+		# position y = @[topbar_height + panel_bar_height] (130) on top of that
+		# pushed the whole view down by exactly one bar height in round 7,
+		# hiding the send button past the screen bottom.
+		position = { 0 0 }
 		parentanchor = left
 		movable = no
 
@@ -417,9 +422,12 @@
 		}
 
 		# ---- give pane: positioned second column inside the window rect ----
+		# Geometry is window-relative: x 577 clears the 570 panel column, the
+		# top aligns with the casus-belli / tabs rows, and the fixed height keeps
+		# the pane clear of the screen bottom.
 		widget = {
-			position = { 577 245 }
-			size = { 478 760 }
+			position = { 577 130 }
+			size = { 478 620 }
 			alwaystransparent = no
 			enabled = "[PeaceOfferLateralView.CanChangeOffer]"
 			using = bg_main_inner_alt
@@ -449,6 +457,20 @@
 					text = "BPT_GIVE_PANE_HINT"
 				}
 
+				# Gold one-directionality (spec constraint 5). Script cannot see the
+				# deal under construction, but the GUI can: IsDecWarScoreEnabled is
+				# false exactly at the vanilla gold treaty's zero floor, so it is
+				# true precisely when a gold demand is already dialled in.
+				text_single = {
+					visible = "[PeaceOfferLateralView.GetGoldTreaty.IsDecWarScoreEnabled]"
+					layoutpolicy_horizontal = expanding
+					size = { -1 24 }
+					autoresize = no
+					fontsize = 12
+					align = left|nobaseline
+					text = "BPT_GOLD_CONFLICT_WARNING"
+				}
+
 				scrollarea = {
 					layoutpolicy_horizontal = expanding
 					layoutpolicy_vertical = expanding
@@ -466,11 +488,8 @@
 									ignoreinvisible = yes
 									direction = vertical
 									layoutpolicy_horizontal = expanding
-									peace_treaties = {
+									bpt_give_treaties = {
 										visible = "[Not(PeaceOfferCategory.IsSeizeLand)]"
-										blockoverride "peace_treaties_row_visible" {
-											visible = "[And(Not(PeaceTreaty.NotShownInPossibleTreaties), LessThan_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)0'))]"
-										}
 									}
 								}
 							}
@@ -485,6 +504,29 @@
 			size = { 570 40 }
 			lateralview_topbuttons = {}
 			block "lateralview_topbuttons_extra" {}
+		}
+	}
+
+	# BPT bilateral view: standalone clone of `type peace_treaties` whose rows are
+	# hard-filtered to GIVE-direction entries (cost < 0).
+	# Written inline rather than reusing the vanilla type, because both indirect
+	# routes silently failed in testing: a blockoverride declared on a derived
+	# type never bound (A.5), and a blockoverride on an instance left the rows
+	# completely unfiltered (A.7 - the pane showed vanilla positive-cost rows).
+	# The vanilla type's own inline filter works, so this one is inline too.
+	type bpt_give_treaties = dynamicgridbox {
+		datamodel_reuse_widgets = yes
+		resizetofit = yes
+		datamodel = "[PeaceOfferCategory.GetTreaties]"
+		item = {
+			widget = {
+				size = { 430 40 }
+				visible = "[And(Not(PeaceTreaty.NotShownInPossibleTreaties), LessThan_CFixedPoint(PeaceTreaty.GetWarScoreCost, '(CFixedPoint)0'))]"
+				hbox = {
+					using = layoutpolicy_expanding
+					peace_treaties_inner_content = {}
+				}
+			}
 		}
 	}
 

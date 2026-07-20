@@ -5,14 +5,24 @@
  bpt_return_location_entry: "[target.GetName] an sie zurückgeben"
  bpt_return_location_entry_short: "[target.GetNameWithNoTooltip] zurückgeben"
 
- # --- Reparationen zahlen ---
- bpt_pay_indemnity: "Reparationen zahlen"
- bpt_pay_indemnity_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold und mindern damit den Wert der übrigen Forderungen."
- bpt_pay_indemnity_entry: "Ihnen Reparationen in Gold zahlen"
- bpt_pay_indemnity_entry_short: "Reparationen zahlen"
- bpt_pay_indemnity_select_amount: "Höhe der Reparationen wählen"
+ # --- Reparationen zahlen (Stufen zu je einem Kredit, wie beim Gold-Vertrag) ---
+ bpt_pay_indemnity_small: "Reparationen zahlen (1 Kredit)"
+ bpt_pay_indemnity_small_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert eines Kredits und mindern damit den Wert der übrigen Forderungen."
+ bpt_pay_indemnity_small_entry: "Ihnen Gold im Wert eines Kredits zahlen"
+ bpt_pay_indemnity_small_entry_short: "Reparationen (1 Kredit)"
+
+ bpt_pay_indemnity_medium: "Reparationen zahlen (3 Kredite)"
+ bpt_pay_indemnity_medium_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert von drei Krediten und mindern damit den Wert der übrigen Forderungen."
+ bpt_pay_indemnity_medium_entry: "Ihnen Gold im Wert von drei Krediten zahlen"
+ bpt_pay_indemnity_medium_entry_short: "Reparationen (3 Kredite)"
+
+ bpt_pay_indemnity_large: "Reparationen zahlen (5 Kredite)"
+ bpt_pay_indemnity_large_desc: "Wir zahlen ihnen im Rahmen dieses Friedens Gold im Wert von fünf Krediten — das Maximum am Verhandlungstisch — und mindern damit den Wert der übrigen Forderungen."
+ bpt_pay_indemnity_large_entry: "Ihnen Gold im Wert von fünf Krediten zahlen"
+ bpt_pay_indemnity_large_entry_short: "Reparationen (5 Kredite)"
 
  # --- Bilaterale Ansicht (Geben-Leiste) ---
  BPT_GIVE_PANE_TITLE_DEMAND: "Ihr gebt"
  BPT_GIVE_PANE_TITLE_OFFER: "Ihr erhaltet zurück"
  BPT_GIVE_PANE_HINT: "Diese Bedingungen zählen gegen das Abkommen — eine Nettosumme, begrenzt auf ±100 %."
+ BPT_GOLD_CONFLICT_WARNING: "Ihr fordert bereits Gold — eine Zahlung hebt das nur auf."

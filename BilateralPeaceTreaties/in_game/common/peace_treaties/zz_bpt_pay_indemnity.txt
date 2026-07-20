@@ -1,66 +1,45 @@
-﻿# Bilateral Peace Treaties - Treaty 2: the winner pays gold to the loser inside
-# the same demand deal. Negative cost -> reduces the deal's net war score.
+﻿# Bilateral Peace Treaties - Treaty group 2: the winner pays gold to the loser
+# inside the same demand deal. Negative cost -> reduces the deal's net war score.
 #
 # KEPT IN ITS OWN FILE on purpose: spec constraint 5 (a deal must never contain
 # both a gold demand and a gold offer) has NO engine-level enforcement hook
 # (no exclusivity field in the treaty schema, no trigger exposing the deal under
-# construction - script_docs 2026-07-19). Whether give-gold ships in v1 is the
-# author's call; to exclude it, delete this file - nothing else references
-# bpt_pay_indemnity.
+# construction - script_docs 2026-07-19). To drop give-gold entirely, delete
+# this file plus bpt_indemnity_loan_value - nothing else references them.
 #
-# VALUATION (Session A.2, replaces the earlier placeholder ratio): the vanilla
-# hardcoded gold treaty is denominated in the PAYER's economy -
-# "Maximum is 5 Loans, totalling +717.27 (25 war score)" => 1 loan = 5% and
-# 1% war score = one month of the payer's trade+tax income (717.27 / 25 = 28.69
-# = loan size / 5 = monthly_income_trade_and_tax). The scripted precedent for
-# exactly this conversion is the vanilla cancel_debt peace treaty:
-# gold / scope:winner.monthly_income_trade_and_tax, guarded against zero income.
+# WHY FIXED TIERS AND NOT A +/- STEPPER (Session A.7, data_types dump):
+# the vanilla gold stepper is PeaceOfferWarScoreTreatyGlue, whose complete
+# function set is Get*/Is*/On(Inc|Dec)*Click - there is no value setter, the
+# 0-floor lives in IsDecWarScoreEnabled (C++), and the only glue instances the
+# GUI can reach are GetGoldTreaty / GetSacrificeTreaty. A second stepper could
+# therefore only drive the SAME gold treaty with the same floor. Scripted
+# treaties are also not war-score treaties (IsWarScoreTreaty = no), so they
+# cannot be rendered as a stepper at all.
+# The earlier value-selector version rendered as one row per step (six
+# near-identical "Pay indemnity" entries), so v1 ships three clearly named
+# tiers instead - the spec's own fallback (spec 5.3).
 #
-# Pattern sources: cancel_debt (cost formula + zero guard), bribe_vote (value
-# select_trigger + two-sided add_gold transfer).
+# VALUATION mirrors vanilla exactly (measured Session A.2/A.4): the vanilla gold
+# treaty is denominated in the payer's economy - 1 Loan = 5% war score = five
+# months of the payer's trade+tax income, capped at 5 Loans / 25%. Each tier is
+# therefore a whole number of loans, and its war-score cost is a constant.
+# No treasury requirement: author decision 2026-07-19 - mirror the vanilla loan
+# rule and let the payer go into debt.
 
-bpt_pay_indemnity = {
+bpt_pay_indemnity_small = {
 	category = country
 
-	# cost (in war score %) = - amount / payer_monthly_trade_and_tax_income.
-	# The exists-guard keeps evaluation quiet before an amount is selected.
 	cost = {
 		add = {
 			desc = "DIPLOREASON_BASE"
-			value = 0
-			if = {
-				limit = { exists = scope:bpt_gold_amount }
-				add = scope:bpt_gold_amount
-			}
-			# Preview before an amount is picked: price the smallest tier (1 loan
-			# = 5%) so the entry is negative and sorts into the give pane instead
-			# of showing 0.
-			else = {
-				add = {
-					value = scope:winner.monthly_income_trade_and_tax
-					multiply = 5
-				}
-			}
+			value = 5
+			multiply = -1
 		}
-		if = {
-			limit = { scope:winner.monthly_income_trade_and_tax != 0 }
-			divide = {
-				desc = "AUTO_MODIFIER_NAME_monthly_income_impact"
-				value = scope:winner.monthly_income_trade_and_tax
-			}
-		}
-		multiply = -1
 	}
-
-	# Paying gold causes no antagonism: base_antagonism/antagonism_type omitted
-	# (omission precedent: chi_recapture_emperor).
 
 	potential = {
 		bpt_human_involved_trigger = yes
 		scope:winner = {
-			# Degenerate-selector guard (zero income -> zero-sized tiers).
-			# No treasury requirement: author decision 2026-07-19 - mirror the
-			# vanilla 5-loan rule; paying beyond cash on hand is allowed.
 			monthly_income_trade_and_tax > 0
 		}
 	}
@@ -68,52 +47,100 @@ bpt_pay_indemnity = {
 	allow = {
 	}
 
-	# Amount selector; inside select_trigger scope:actor = winner = the payer,
-	# so all bounds read the payer's economy in both directions of fortune.
-	# Tiers of one loan's worth each (1 loan = 5 monthly trade+tax incomes = 5%
-	# war score): the value-picker UI renders ~5 quick-pick options, so the tier
-	# grid makes them read exactly as "1..5 loans" - the same range and cap as
-	# the vanilla gold treaty ("Maximum is 5 Loans" = 25%). No treasury clamp:
-	# author decision 2026-07-19, mirror vanilla and let the payer go into debt
-	# (TESTLOG T4 observes what add_gold below zero actually does in 1.3.11).
-	select_trigger = {
-		looking_for_a = value
-		target_flag = bpt_gold_amount
-		name = "bpt_pay_indemnity_select_amount"
-		min = {
-			value = scope:actor.monthly_income_trade_and_tax
-			multiply = 5
+	effect = {
+		scope:winner = {
+			add_gold = {
+				value = bpt_indemnity_loan_value
+				multiply = -1
+			}
 		}
-		max = {
-			value = scope:actor.monthly_income_trade_and_tax
-			multiply = 25
+		scope:loser = {
+			add_gold = bpt_indemnity_loan_value
 		}
-		step = {
-			value = scope:actor.monthly_income_trade_and_tax
-			multiply = 5
+	}
+
+	ai_desire = {
+		value = 0
+	}
+}
+
+bpt_pay_indemnity_medium = {
+	category = country
+
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 15
+			multiply = -1
 		}
-		default = {
-			value = scope:actor.monthly_income_trade_and_tax
-			multiply = 5
+	}
+
+	potential = {
+		bpt_human_involved_trigger = yes
+		scope:winner = {
+			monthly_income_trade_and_tax > 0
 		}
+	}
+
+	allow = {
 	}
 
 	effect = {
-		if = {
-			limit = { exists = scope:bpt_gold_amount }
-			scope:winner = {
-				add_gold = {
-					value = scope:bpt_gold_amount
-					multiply = -1
-				}
+		scope:winner = {
+			add_gold = {
+				value = bpt_indemnity_loan_value
+				multiply = -3
 			}
-			scope:loser = {
-				add_gold = scope:bpt_gold_amount
+		}
+		scope:loser = {
+			add_gold = {
+				value = bpt_indemnity_loan_value
+				multiply = 3
 			}
 		}
 	}
 
-	# v1: the AI never authors this treaty in its own offers.
+	ai_desire = {
+		value = 0
+	}
+}
+
+bpt_pay_indemnity_large = {
+	category = country
+
+	cost = {
+		add = {
+			desc = "DIPLOREASON_BASE"
+			value = 25
+			multiply = -1
+		}
+	}
+
+	potential = {
+		bpt_human_involved_trigger = yes
+		scope:winner = {
+			monthly_income_trade_and_tax > 0
+		}
+	}
+
+	allow = {
+	}
+
+	effect = {
+		scope:winner = {
+			add_gold = {
+				value = bpt_indemnity_loan_value
+				multiply = -5
+			}
+		}
+		scope:loser = {
+			add_gold = {
+				value = bpt_indemnity_loan_value
+				multiply = 5
+			}
+		}
+	}
+
 	ai_desire = {
 		value = 0
 	}

@@ -1,6 +1,18 @@
 ﻿# Bilateral Peace Treaties - shared values
 
 # ============================================================================
+# bpt_indemnity_loan_value - gold worth one Loan to the paying side.
+# ============================================================================
+# Vanilla denominates peace gold in the payer's economy: its stepper tooltip
+# reads "Maximum is 5 Loans, totalling +717.27 (25 war score)" -> 1 Loan = 5%
+# war score = five months of trade+tax income (measured 28.69 gold per 1%).
+# Used by the bpt_pay_indemnity_* tiers; payer = scope:winner.
+bpt_indemnity_loan_value = {
+	value = scope:winner.monthly_income_trade_and_tax
+	multiply = 5
+}
+
+# ============================================================================
 # bpt_taker_conquer_cost_factor
 # ============================================================================
 # The engine multiplies a location's peace value by the TAKING side's
