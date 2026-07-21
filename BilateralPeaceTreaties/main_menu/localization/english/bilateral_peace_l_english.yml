@@ -3,27 +3,15 @@
  bpt_return_location: "Offer Location"
  bpt_return_location_desc: "We will hand one of our own locations over to them as part of this peace, reducing what the rest of the deal is worth."
  bpt_return_location_entry: "Offer [target.GetName] to them"
- # The antagonism the receiver takes = Core·(1 − 0.5·giverGP) + 0.25·Core·receiverGP.
- # Loc can't reach the receiver from the location root (root-only, Session A.26), so
- # the two parts are ADDED here: bpt_location_give_antagonism (Core + the giver's −50%,
- # called on the location) plus bpt_location_core (Core, on the location) times
- # bpt_receiver_gp_factor (0.25 or 0, called on TARGET_COUNTRY = the receiving/losing
- # side). Equals the effect's one-shot bpt_given_location_antagonism. See bpt_values.txt.
  bpt_return_location_entry_short: "Offer [target.GetNameWithNoTooltip] ([Add_CFixedPoint(target.MakeScope.ScriptValue('bpt_location_give_antagonism'),Multiply_CFixedPoint(target.MakeScope.ScriptValue('bpt_location_core'),TARGET_COUNTRY.MakeScope.ScriptValue('bpt_receiver_gp_factor')))|2] [antagonism|E])"
 
  # --- Offer Province (every location of it we hold) ---
  bpt_return_province: "Offer Province"
  bpt_return_province_desc: "We will hand a whole province back to them as part of this peace — every location in it that we hold — reducing what the rest of the deal is worth."
  bpt_return_province_entry: "Offer all of [target.GetName] to them"
- # The receiver's total antagonism for the province, summed in two parts (loc can't
- # reach the receiver from the province root): bpt_province_return_antagonism (Σ of
- # Core + the giver's −50%) plus bpt_province_core_sum (Σ Core) times the receiver
- # factor on TARGET_COUNTRY. Same model as the single-location row; see bpt_values.txt.
  bpt_return_province_entry_short: "Offer all of [target.GetNameWithNoTooltip] ([Add_CFixedPoint(target.MakeScope.ScriptValue('bpt_province_return_antagonism'),Multiply_CFixedPoint(target.MakeScope.ScriptValue('bpt_province_core_sum'),TARGET_COUNTRY.MakeScope.ScriptValue('bpt_receiver_gp_factor')))|2] [antagonism|E])"
 
- # --- Pay Indemnity: five one-loan units, add as many as you want to pay ---
- # All five share one short label on purpose: the give pane matches on it to
- # tell gold entries apart from land entries.
+# --- Ducats ---
  bpt_pay_indemnity_1: "Pay Indemnity"
  bpt_pay_indemnity_1_desc: "We will pay them one loan's worth of gold as part of this peace, reducing what the rest of the deal is worth. Add another coin for each further loan — five is the most the peace table allows."
  bpt_pay_indemnity_1_entry: "Pay them one loan's worth of gold"
@@ -52,7 +40,7 @@
  # --- Bilateral view (give pane) ---
  BPT_GIVE_PANE_TITLE_DEMAND: "You Give"
  BPT_GIVE_PANE_TITLE_OFFER: "You Get Back"
- BPT_GIVE_PANE_HINT: "These terms count against the deal — one net total, capped at ±100%."
+ BPT_GIVE_PANE_HINT: "  These terms count against the deal — one net total, capped at ±100%."
  BPT_GOLD_CONFLICT_WARNING: "You are already demanding gold — paying it back cancels out."
  BPT_GOLD_PICKER_LABEL: "Ducats:"
  BPT_GIVE_PANE_TOGGLE_TT: "Show or hide what you are giving"

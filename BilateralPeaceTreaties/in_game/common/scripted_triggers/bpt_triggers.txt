@@ -2,8 +2,8 @@
 # Peace treaty scopes: scope:winner = taker, scope:loser = giver, scope:war = the war
 # (documented in game/in_game/common/peace_treaties/readme.txt)
 
-# True when at least one side of the deal is human.
-# Used in every bpt_ treaty's potential -> the treaties never exist in AI-AI peace deals.
+# Ensure it's only Player VS AI, used in every bpt_ treaty's potential -> the treaties never exist in AI-AI peace deals.
+
 bpt_human_involved_trigger = {
 	OR = {
 		scope:winner = { is_ai = no }
@@ -13,9 +13,9 @@ bpt_human_involved_trigger = {
 
 # Which locations are offerable back to the loser.
 # ROOT = the candidate location; inside select_trigger: scope:actor = winner (taker), scope:recipient = loser (giver).
-# Mirrors the vanilla Offer Tribute eligibility confirmed in Session A (TESTLOG M4):
-# ALL locations of the giving side are offerable - own land incl. capital, plus
-# subjects' land ("is_subject_of": triggers.log docs, 2026-07-19).
+# Mirrors the vanilla Offer Tribute: ALL locations of the giving side are offerable - own land incl. capital,
+# plus subjects' land ("is_subject_of": triggers.log docs).
+
 bpt_giveable_location_trigger = {
 	OR = {
 		owner = scope:actor

@@ -1,28 +1,8 @@
 ﻿# Bilateral Peace Treaties - gold the winner pays to the loser inside the same
 # demand deal. Negative cost -> reduces the deal's net war score.
 #
-# DESIGN: FIVE IDENTICAL ONE-LOAN UNITS. Click one coin per Loan, up to five.
-#
-# Why not one treaty with a chosen amount (tried in round 14, reverted here):
-# the engine offers no mutual exclusion for scripted treaties, and Session A.15
-# proved that several values of the SAME treaty stack just like several location
-# targets do. A 1..5-Loan value treaty could therefore be selected at every stop
-# at once - 5+10+15+20+25 = 75% war score, fifteen Loans of gold, three times
-# vanilla's documented maximum ("Maximum is 5 Loans" = 25%).
-# Equal one-Loan units cannot express an invalid state: N selected units = N
-# Loans, and five units is exactly the vanilla ceiling.
-# The cost is one summary row per selected unit, which the author has seen; the
-# single-treaty alternative only collapsed to one row while a single amount was
-# picked anyway, and broke the cap the moment two were.
-#
-# All five carry the same short label on purpose: the give pane matches on it to
-# tell gold entries from land entries (the engine exposes no treaty key, tag or
-# category to the GUI - DISCOVERY 22/23).
-#
-# VALUATION mirrors vanilla exactly (measured Session A.2/A.4): 1 Loan = 5% war
-# score = five months of the payer's trade+tax income (bpt_indemnity_loan_value).
-# No treasury requirement - author decision: mirror the vanilla loan rule and
-# let the payer go into debt.
+# Five Identical one-loan units. Click one coin per Loan, up to five.
+# 1 loan = 5% warscore.
 
 bpt_pay_indemnity_1 = {
 	category = country

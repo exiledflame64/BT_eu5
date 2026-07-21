@@ -1,15 +1,14 @@
-﻿# Bilateral Peace Treaties - Treaty 3: the winner hands a whole province back to
+﻿# Bilateral Peace Treaties - Treaty 2: the winner hands a whole province back to
 # the loser in one entry, instead of ticking its locations one by one.
 #
-# WHY THIS EXISTS: vanilla's province -> locations tree comes from engine-built
-# inner categories that only exist for its own cession lists, and the GUI cannot
-# resolve our rows' locations at all (PeaceTreaty.HasLocation is false for
-# select_trigger targets - DISCOVERY 23), so nesting the Return rows under their
-# province is impossible. Offering the province itself as a target is the
-# workable alternative: one row per province, priced as the sum of its parts.
+# WHY: vanilla's province -> locations tree comes from engine-built inner categories
+# that only exist for its own cession lists, and the GUI cannot resolve our rows' locations at all, 
+# so nesting the Return rows under their province is impossible.
+# Offering the province itself as a target is the workable alternative:
+# one row per province, priced as the sum of its parts.
 #
-# Only the winner's own locations inside the province move - a province may be
-# split between owners, and the rest is none of this treaty's business.
+# Only the winner's own locations inside the province move - a province may be split between owners,
+# and the rest is none of this treaty's business.
 
 bpt_return_province = {
 	category = province
@@ -25,9 +24,8 @@ bpt_return_province = {
 		}
 	}
 
-	# No base_antagonism - the engine sends it to the deal's composer, i.e. it
-	# would make the giver hated (Session A.19). The receiver is antagonised per
-	# transferred location in the effect instead; see zz_bpt_return_location.txt.
+	# No base_antagonism - the engine sends it to the deal's composer, (i.e. it would make the giver hated).
+	# The receiver is antagonised per transferred location in the effect instead; see zz_bpt_return_location.txt.
 
 	potential = {
 		bpt_human_involved_trigger = yes
