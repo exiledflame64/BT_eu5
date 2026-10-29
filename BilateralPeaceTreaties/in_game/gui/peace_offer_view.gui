@@ -2615,7 +2615,7 @@ lateralview = {
 		position = { 577 100 }
 		size = { 465 620 }
 		# Collapsed state
-		visible = "[Not(PeaceOfferLateralView.Vars.Exists('bpt_give_pane_hidden'))]"
+		visible = "[PeaceOfferLateralView.Vars.Exists('bpt_give_pane_shown')]"
 		enabled = "[PeaceOfferLateralView.CanChangeOffer]"
 		using = bg_main_inner_alt
 
@@ -2772,7 +2772,7 @@ lateralview = {
 		size = { 30 30 }
 
 		button_back_alt = {
-			visible = "[Not(PeaceOfferLateralView.Vars.Exists('bpt_give_pane_hidden'))]"
+			visible = "[PeaceOfferLateralView.Vars.Exists('bpt_give_pane_shown')]"
 			blockoverride "back_properties" {
 				parentanchor = center
 			}
@@ -2781,13 +2781,13 @@ lateralview = {
 					click_type = left
 					click_mode = single
 					title = "BPT_GIVE_PANE_TOGGLE_TT"
-					on_action = "[PeaceOfferLateralView.Vars.Toggle('bpt_give_pane_hidden')]"
+					on_action = "[PeaceOfferLateralView.Vars.Toggle('bpt_give_pane_shown')]"
 				}
 			}
 		}
 
 		button_back_alt = {
-			visible = "[PeaceOfferLateralView.Vars.Exists('bpt_give_pane_hidden')]"
+			visible = "[Not(PeaceOfferLateralView.Vars.Exists('bpt_give_pane_shown'))]"
 			mirror = horizontal
 			blockoverride "back_properties" {
 				parentanchor = center
@@ -2797,7 +2797,7 @@ lateralview = {
 					click_type = left
 					click_mode = single
 					title = "BPT_GIVE_PANE_TOGGLE_TT"
-					on_action = "[PeaceOfferLateralView.Vars.Toggle('bpt_give_pane_hidden')]"
+					on_action = "[PeaceOfferLateralView.Vars.Toggle('bpt_give_pane_shown')]"
 				}
 			}
 		}
